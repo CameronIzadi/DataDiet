@@ -340,6 +340,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: SPACING.xl,
+    flexGrow: 1,
   },
   skeletonContainer: {
     gap: SPACING.sm,

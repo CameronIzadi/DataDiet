@@ -35,11 +35,17 @@ export default function RootNavigator() {
     );
   }
 
-  // If user is authenticated AND has completed onboarding, go straight to Main
-  if (isAuthenticated && hasCompletedOnboarding && !showSplash) {
+  if (showSplash) {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main" component={MainNavigator} />
+      <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade', gestureEnabled: false }}>
+        <Stack.Screen name="Splash">
+          {(props) => (
+            <SplashScreen
+              {...props}
+              onComplete={() => setShowSplash(false)}
+            />
+          )}
+        </Stack.Screen>
       </Stack.Navigator>
     );
   }
@@ -52,30 +58,25 @@ export default function RootNavigator() {
         gestureEnabled: false,
       }}
     >
-      {showSplash && (
-        <Stack.Screen name="Splash">
-          {(props) => (
-            <SplashScreen
-              {...props}
-              onComplete={() => setShowSplash(false)}
-            />
-          )}
-        </Stack.Screen>
+      {!isAuthenticated ? (
+        <>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingNavigator}
+            options={{ animation: 'slide_from_right' }}
+          />
+        </>
+      ) : !hasCompletedOnboarding ? (
+        <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
+      ) : (
+        <Stack.Screen name="Main" component={MainNavigator} />
       )}
-
-      {/* Non-authenticated or mid-onboarding flow */}
-      <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ animation: 'slide_from_right' }}
-      />
-      <Stack.Screen
-        name="Onboarding"
-        component={OnboardingNavigator}
-        options={{ animation: 'slide_from_right' }}
-      />
-      <Stack.Screen name="Main" component={MainNavigator} />
     </Stack.Navigator>
   );
 }

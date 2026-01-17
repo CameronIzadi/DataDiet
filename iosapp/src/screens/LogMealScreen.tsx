@@ -147,16 +147,29 @@ export default function LogMealScreen({ navigation }: Props) {
     navigation.navigate('Capture');
   };
 
+  const firstName =
+    user?.displayName?.split(' ')[0] ||
+    user?.email?.split('@')[0] ||
+    'there';
+
   return (
     <Animated.View style={[styles.container, animatedBackground]}>
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View>
-              <ThemedText variant="displaySmall" color="primary">Log Meal</ThemedText>
-              <ThemedText variant="bodyMedium" color="muted" style={styles.subtitle}>
-                Capture what you eat
-              </ThemedText>
+            <View style={styles.headerLeft}>
+              <View
+                style={[
+                  styles.profileIcon,
+                  { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+                ]}
+              >
+                <Icon name="account" size={20} color={colors.textMuted} />
+              </View>
+              <View>
+                <ThemedText variant="bodySmall" color="muted">Hello,</ThemedText>
+                <ThemedText variant="headlineSmall" color="primary">{firstName}</ThemedText>
+              </View>
             </View>
             <SettingsButton onPress={() => navigation.navigate('Settings')} isDark={isDark} colors={colors} />
           </View>
@@ -756,15 +769,24 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.lg,
-    paddingBottom: SPACING.md,
+    paddingBottom: SPACING.sm,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
-  subtitle: {
-    marginTop: SPACING.xs,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  profileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   settingsButton: {
     width: 44,
@@ -837,7 +859,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: RADIUS.xl,
-    padding: SPACING.md,
+    padding: SPACING.lg,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -851,15 +873,15 @@ const styles = StyleSheet.create({
     }),
   },
   mealThumbnail: {
-    width: 72,
-    height: 72,
-    borderRadius: RADIUS.lg,
+    width: 84,
+    height: 84,
+    borderRadius: RADIUS.xl,
     marginRight: SPACING.md,
   },
   mealThumbnailPlaceholder: {
-    width: 72,
-    height: 72,
-    borderRadius: RADIUS.lg,
+    width: 84,
+    height: 84,
+    borderRadius: RADIUS.xl,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SPACING.md,

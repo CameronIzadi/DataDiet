@@ -73,9 +73,9 @@ export default function SettingsScreen({ navigation }: Props) {
         {
           text: 'Log Out',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             haptics.medium();
-            logout();
+            await logout();
           },
         },
       ]

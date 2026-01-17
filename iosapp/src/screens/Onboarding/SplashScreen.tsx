@@ -50,7 +50,6 @@ export default function SplashScreen({ onComplete }: Props) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Animated.View style={[styles.logoContainer, logoStyle]}>
-        <Text style={[styles.logoIcon]}>🍽️</Text>
         <Text style={[styles.logoText, { color: colors.text }]}>DataDiet</Text>
       </Animated.View>
 
@@ -70,13 +69,9 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
   },
-  logoIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
   logoText: {
     fontFamily: TYPOGRAPHY.fontFamily.bold,
-    fontSize: 42,
+    fontSize: 56,
     letterSpacing: -1,
   },
   tagline: {

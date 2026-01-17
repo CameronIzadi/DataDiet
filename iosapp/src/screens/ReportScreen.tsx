@@ -320,14 +320,6 @@ export default function ReportScreen({ navigation }: Props) {
           {/* Quick Actions */}
           <View style={styles.quickActions}>
             <QuickActionCard
-              icon="history"
-              title="Report History"
-              subtitle="View past reports"
-              onPress={() => navigation.navigate('ReportHistory')}
-              isDark={isDark}
-              colors={colors}
-            />
-            <QuickActionCard
               icon="blood-bag"
               title="Blood Work"
               subtitle="Add test results"
@@ -478,8 +470,13 @@ function QuickActionCard({ icon, title, subtitle, onPress, isDark, colors }: Qui
       style={[styles.quickActionCard, animatedStyle]}
     >
       <Card variant="utility" style={styles.quickActionInner}>
-        <View style={[styles.quickActionIcon, { backgroundColor: `${colors.primary}15` }]}>
-          <Icon name={icon as any} size={20} color={colors.primary} />
+        <View
+          style={[
+            styles.quickActionIcon,
+            { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
+          ]}
+        >
+          <Icon name={icon as any} size={20} color={isDark ? DARK.textMuted : LIGHT.textMuted} />
         </View>
         <View style={styles.quickActionText}>
           <ThemedText variant="bodyMedium" color="primary">{title}</ThemedText>
@@ -948,12 +945,12 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
   },
   quickActions: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: SPACING.md,
     marginBottom: SPACING.xl,
   },
   quickActionCard: {
-    flex: 1,
+    width: '100%',
   },
   quickActionInner: {
     flexDirection: 'row',
