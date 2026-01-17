@@ -1,44 +1,55 @@
-# DataDiet (iOS App)
+# DataDiet
 
-DataDiet is a **dietary black box** and a **health infrastructure platform** for patient‑doctor dieting workflows: capture meals with a quick photo, forget about them, and surface medically useful patterns when something changes (labs, symptoms, sleep, gut issues). It is **not** a daily calorie tracker.
-
-This README reflects the current iOS app implementation and the intent described in `Downloads/HACKSTART`.
+DataDiet is a **dietary black box** and **health‑infrastructure platform** for patient–doctor dieting workflows. Users capture meals with quick photos and the system surfaces medically useful patterns when something changes (labs, symptoms, sleep, gut issues). It is **not** a daily calorie tracker.
 
 ---
 
-## What’s Implemented (iOS / Expo)
+## Overview
 
-### Core Flow (MVP)
-- **Photo capture** (camera or gallery) with a fast “Log Meal” flow.
-- **Gemini 3 Flash analysis** of meal photos:
-  - Foods + estimated portions
-  - Container type (plastic_bottle, glass, can, none)
-  - Dietary flags (see list below)
-  - Estimated nutrition (stored; not emphasized in UI)
-- **Firebase storage** for meals + images:
-  - Firestore: `users/{userId}/meals/{mealId}`
-  - Cloud Storage: meal image uploads
-- **Personalized signal tracking (onboarding)**:
-  - “Track everything” or select only the signals you care about.
-- **Insights dashboard** with trends + charts based on selected signals.
-- **Blood work input**:
-  - Manual entry screen
-  - Upload lab file (PDF/image) and store in Firebase Storage
-  - Current implementation saves metadata locally (AsyncStorage).
-- **Doctor report generation**:
-  - Gemini narrative report
-  - PDF export (expo-print + expo-sharing)
-  - Report history stored locally (AsyncStorage, 7‑day TTL)
+**Purpose**
+- Create a reliable dietary record that helps patients and clinicians answer “what changed?” when health signals shift.
 
-### Auth & Settings
-- **Firebase Auth (Email/Password)**
-- Theme settings, logout, etc.
+**Current Apps**
+- **iOS app (Expo)**: meal capture, insights, blood work input, doctor reports, PDF export.
+- **Web app (planned)**: patient + doctor portal for review, messaging, and document requests.
+
+---
+
+## Implemented Features (iOS)
+
+### Capture → Analyze → Store
+- Camera or gallery meal capture.
+- Gemini 3 Flash photo analysis:
+  - foods + estimated portions
+  - container type
+  - dietary flags (below)
+  - estimated nutrition (stored; not emphasized)
+- Firestore storage: `users/{userId}/meals/{mealId}`
+- Image uploads in Firebase Storage
+
+### Personalization
+- Onboarding: track everything or select specific signals (gut, blood pressure, sleep, lipids, etc.).
+
+### Insights
+- Dashboard with signal‑driven metrics and trend visuals.
+
+### Blood Work
+- Manual entry screen for common labs.
+- Lab file upload (PDF/image) stored to Firebase Storage.
+
+### Doctor Report
+- Gemini narrative report.
+- PDF export (expo‑print + expo‑sharing).
+- Report history (AsyncStorage, 7‑day TTL).
+
+### Auth
+- Firebase Email/Password auth.
 
 ---
 
 ## Dietary Flags (Image Analysis)
 
-Gemini is prompted to return only applicable flags:
+Gemini returns only applicable flags:
 
 ```json
 {
@@ -60,8 +71,8 @@ Gemini is prompted to return only applicable flags:
 }
 ```
 
-The app **also adds**:
-- `late_meal` when a meal is logged after 9pm (or before 5am).
+The app also adds:
+- `late_meal` when logged after 9pm (or before 5am).
 
 ---
 
@@ -71,20 +82,18 @@ The app **also adds**:
 - **Firebase** (Auth, Firestore, Storage)
 - **Gemini 3 Flash** (`@google/generative-ai`)
 - **expo-image-picker**, **expo-print**, **expo-sharing**
-- **AsyncStorage** (report history + blood work metadata for now)
+- **AsyncStorage** for report history + blood work metadata (current)
 
 ---
 
-## Setup (iOS App)
-
-From repo root:
+## Getting Started (iOS)
 
 ```bash
 cd iosapp
 npm install
 ```
 
-Create `.env` in `iosapp/`:
+Create `iosapp/.env`:
 
 ```
 EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_key
@@ -102,25 +111,32 @@ Run:
 npx expo start
 ```
 
+### Firebase Setup (minimum)
+- Enable **Authentication** (Email/Password)
+- Enable **Firestore**
+- Enable **Storage**
+
 ---
 
-## Project Structure
+## Repo Structure
 
 - `iosapp/` → iOS app (current codebase)
 - `webapp/` → planned Next.js app (patient + doctor portal)
+- `iosapp/IMPLEMENTATION_PLAN.md` → build plan
+- `iosapp/RESEARCH.md` → research + evidence notes
 
 ---
 
-## Product Philosophy (from HACKSTART)
+## Product Principles
 
-- **No daily calorie guilt** — capture and move on.
-- **Doctor‑ready output** — readable reports, not raw data.
-- **Unusual insights** — plastics, carcinogens, meal timing, irritants.
-- **Preventive + reactive** — patterns before and after lab changes.
+- **Capture & forget**: minimal daily engagement, no guilt.
+- **Clinician‑friendly output**: one‑page report, actionable patterns.
+- **Unusual signals**: plastics, carcinogens, timing, irritants.
+- **Preventive + reactive**: help before and after lab changes.
 
 ---
 
-## Status / Known Gaps
+## Known Gaps / Next Steps
 
-- Blood work and report history are **local-only** (AsyncStorage) in this build.
-- Web app is planned (folder reserved).
+- Blood work + report history are **local‑only** right now.
+- Web app not implemented yet (folder reserved).
