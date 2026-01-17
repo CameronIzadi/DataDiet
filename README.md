@@ -1,99 +1,71 @@
 # DataDiet
 
-DataDiet is a **dietary black box** and **health‑infrastructure platform** for patient–doctor dieting workflows. Users capture meals with quick photos and the system surfaces medically useful patterns when something changes (labs, symptoms, sleep, gut issues). It is **not** a daily calorie tracker.
+A **dietary black box** for patient-doctor workflows. Capture meals effortlessly, surface medically-relevant patterns, and generate doctor-ready reports when health signals change.
+
+**Not a calorie counter.** A long-term dietary record.
 
 ---
 
-## Overview
+## The Problem
 
-**Purpose**
-- Create a reliable dietary record that helps patients and clinicians answer “what changed?” when health signals shift.
-
-**Problems We’re Solving**
-- **Diet recall is unreliable**: Patients can’t accurately remember what they ate days or months ago, yet clinicians need that history when labs or symptoms change.
-- **Most diet apps optimize for daily engagement**: Calorie‑first tools create fatigue, guilt, and dropout, so they don’t produce long‑term records.
-- **No clinician‑ready output**: Existing trackers don’t translate diet history into concise, medical‑grade summaries.
-- **Untracked signals matter**: Plastics, carcinogenic cooking methods, meal timing, irritants, and ultra‑processed exposure aren’t tracked in typical apps.
-- **High societal cost**: Diet‑related disease burden is massive; preventing and explaining changes requires longitudinal data.
-
-**Current Apps**
-- **iOS app (Expo)**: meal capture, insights, blood work input, doctor reports, PDF export.
-- **Web app (planned)**: patient + doctor portal for review, messaging, and document requests.
+- **Diet recall is unreliable** — Patients can't accurately recall what they ate weeks ago, but clinicians need this when labs or symptoms shift
+- **Existing apps cause fatigue** — Calorie-first tools create guilt and dropout; they don't build lasting records
+- **No clinical output** — Trackers don't produce doctor-ready summaries
+- **Important signals go untracked** — Plastics, carcinogenic cooking, meal timing, and ultra-processed exposure aren't captured
 
 ---
 
-## Implemented Features (iOS)
+## Features
 
-### Capture → Analyze → Store
-- Camera or gallery meal capture.
-- Gemini 3 Flash photo analysis:
-  - foods + estimated portions
-  - container type
-  - dietary flags (below)
-  - estimated nutrition (stored; not emphasized)
-- Firestore storage: `users/{userId}/meals/{mealId}`
-- Image uploads in Firebase Storage
+| Feature | iOS App | Web App |
+|---------|---------|---------|
+| Meal capture (camera/gallery) | ✅ | ✅ |
+| AI food analysis (Gemini) | ✅ | ✅ |
+| Dietary flag detection | ✅ | ✅ |
+| Insights dashboard | ✅ | ✅ |
+| Blood work input | ✅ | 🚧 |
+| Doctor report generation | ✅ | ✅ |
+| PDF/HTML export | ✅ | ✅ |
+| Firebase sync | ✅ | ✅ |
+| Google OAuth | — | ✅ |
 
-### Personalization
-- Onboarding: track everything or select specific signals (gut, blood pressure, sleep, lipids, etc.).
+### Dietary Flags Tracked
 
-### Insights
-- Dashboard with signal‑driven metrics and trend visuals.
+The AI detects these health-relevant patterns:
 
-### Blood Work
-- Manual entry screen for common labs.
-- Lab file upload (PDF/image) stored to Firebase Storage.
-
-### Doctor Report
-- Gemini narrative report.
-- PDF export (expo‑print + expo‑sharing).
-- Report history (AsyncStorage, 7‑day TTL).
-
-### Auth
-- Firebase Email/Password auth.
-
----
-
-## Dietary Flags (Image Analysis)
-
-Gemini returns only applicable flags:
-
-```json
-{
-  "flags": [
-    "plastic_bottle",
-    "plastic_container_hot",
-    "processed_meat",
-    "ultra_processed",
-    "charred_grilled",
-    "fried",
-    "high_sugar_beverage",
-    "caffeine",
-    "alcohol",
-    "high_sodium",
-    "refined_grain",
-    "spicy_irritant",
-    "acidic_trigger"
-  ]
-}
-```
-
-The app also adds:
-- `late_meal` when logged after 9pm (or before 5am).
+- `plastic_bottle` — Microplastic/BPA exposure
+- `plastic_container_hot` — Heated plastic containers
+- `processed_meat` — WHO Group 1 carcinogen
+- `ultra_processed` — NOVA Group 4 foods
+- `charred_grilled` — HCA/PAH formation
+- `fried` — Acrylamide and oxidized fats
+- `high_sugar_beverage` — Metabolic impact
+- `late_meal` — Circadian disruption (after 9pm)
+- `high_sodium` — Blood pressure impact
+- `caffeine` / `alcohol` — Sleep and gut effects
+- `spicy_irritant` / `acidic_trigger` — GI sensitivity
 
 ---
 
 ## Tech Stack
 
-- **Expo + React Native**
-- **Firebase** (Auth, Firestore, Storage)
-- **Gemini 3 Flash** (`@google/generative-ai`)
-- **expo-image-picker**, **expo-print**, **expo-sharing**
-- **AsyncStorage** for report history + blood work metadata (current)
+### iOS App (`/iosapp`)
+- Expo + React Native
+- Firebase (Auth, Firestore, Storage)
+- Gemini 2.0 Flash
+
+### Web App (`/webapp`)
+- Next.js 16 + TypeScript
+- Tailwind CSS v4
+- Firebase (Auth, Firestore)
+- Gemini 2.0 Flash
+- Framer Motion
 
 ---
 
-## Getting Started (iOS)
+## Getting Started
+
+### iOS App
 
 ```bash
 cd iosapp
@@ -102,7 +74,7 @@ npm install
 
 Create `iosapp/.env`:
 
-```
+```env
 EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_key
 EXPO_PUBLIC_FIREBASE_API_KEY=your_firebase_key
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
@@ -112,38 +84,73 @@ EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 
-Run:
-
 ```bash
 npx expo start
 ```
 
-### Firebase Setup (minimum)
-- Enable **Authentication** (Email/Password)
-- Enable **Firestore**
-- Enable **Storage**
+### Web App
+
+```bash
+cd webapp
+npm install
+```
+
+Create `webapp/.env.local`:
+
+```env
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_key
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+### Firebase Setup
+
+1. Create a Firebase project
+2. Enable **Authentication** (Email/Password + Google)
+3. Enable **Firestore Database**
+4. Enable **Storage**
 
 ---
 
-## Repo Structure
+## Project Structure
 
-- `iosapp/` → iOS app (current codebase)
-- `webapp/` → planned Next.js app (patient + doctor portal)
-- `iosapp/IMPLEMENTATION_PLAN.md` → build plan
-- `iosapp/RESEARCH.md` → research + evidence notes
+```
+DataDiet/
+├── iosapp/          # iOS app (Expo + React Native)
+│   ├── app/         # App screens
+│   ├── components/  # Reusable components
+│   └── services/    # Firebase, Gemini services
+├── webapp/          # Web app (Next.js)
+│   ├── src/
+│   │   ├── app/     # Next.js app router pages
+│   │   ├── components/
+│   │   ├── services/
+│   │   └── context/
+│   └── public/
+└── README.md
+```
 
 ---
 
-## Product Principles
+## Design Philosophy
 
-- **Capture & forget**: minimal daily engagement, no guilt.
-- **Clinician‑friendly output**: one‑page report, actionable patterns.
-- **Unusual signals**: plastics, carcinogens, timing, irritants.
-- **Preventive + reactive**: help before and after lab changes.
+- **Capture & forget** — Minimal daily friction, no guilt
+- **Clinician-ready** — One-page reports with actionable patterns
+- **Track what matters** — Plastics, carcinogens, timing, irritants
+- **Preventive + reactive** — Useful before and after health changes
 
 ---
 
-## Known Gaps / Next Steps
+## License
 
-- Blood work + report history are **local‑only** right now.
-- Web app not implemented yet (folder reserved).
+MIT
