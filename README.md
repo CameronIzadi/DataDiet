@@ -2,48 +2,79 @@
 
 DataDiet is a **dietary black box** and **health‑infrastructure platform** for patient–doctor dieting workflows. Users capture meals with quick photos and the system surfaces medically useful patterns when something changes (labs, symptoms, sleep, gut issues). It is **not** a daily calorie tracker.
 
+> "Prevent disease. React when needed."
+
 ---
 
 ## Overview
 
 **Purpose**
-- Create a reliable dietary record that helps patients and clinicians answer “what changed?” when health signals shift.
+- Create a reliable dietary record that helps patients and clinicians answer "what changed?" when health signals shift.
 
 **Current Apps**
 - **iOS app (Expo)**: meal capture, insights, blood work input, doctor reports, PDF export.
-- **Web app (planned)**: patient + doctor portal for review, messaging, and document requests.
+- **Web app (Next.js)**: patient dashboard with real-time sync, doctor reports, pattern analysis.
 
 ---
 
-## Implemented Features (iOS)
+## 🎯 What Makes This Different
 
-### Capture → Analyze → Store
-- Camera or gallery meal capture.
-- Gemini 3 Flash photo analysis:
-  - foods + estimated portions
-  - container type
-  - dietary flags (below)
-  - estimated nutrition (stored; not emphasized)
+Unlike MyFitnessPal or Noom, this app:
+- **Doesn't show daily calories** - No guilt, no obsession
+- **No streaks or gamification** - Anti-engagement model
+- **Tracks what others don't** - Plastic bottles, processed meat frequency, meal timing
+- **Doctor-facing output** - Professional reports for your physician
+- **Dual purpose** - Prevention AND reaction to health issues
+
+---
+
+## Implemented Features
+
+### iOS App (Expo)
+
+#### Capture → Analyze → Store
+- Camera or gallery meal capture
+- Gemini 3 Flash photo analysis (foods, portions, containers, flags)
 - Firestore storage: `users/{userId}/meals/{mealId}`
 - Image uploads in Firebase Storage
 
-### Personalization
-- Onboarding: track everything or select specific signals (gut, blood pressure, sleep, lipids, etc.).
+#### Personalization
+- Onboarding: track everything or select specific signals (gut, blood pressure, sleep, lipids, etc.)
 
-### Insights
-- Dashboard with signal‑driven metrics and trend visuals.
+#### Insights
+- Dashboard with signal‑driven metrics and trend visuals
 
-### Blood Work
-- Manual entry screen for common labs.
-- Lab file upload (PDF/image) stored to Firebase Storage.
+#### Blood Work
+- Manual entry screen for common labs
+- Lab file upload (PDF/image) stored to Firebase Storage
 
-### Doctor Report
-- Gemini narrative report.
-- PDF export (expo‑print + expo‑sharing).
-- Report history (AsyncStorage, 7‑day TTL).
+#### Doctor Report
+- Gemini narrative report
+- PDF export (expo‑print + expo‑sharing)
+- Report history (AsyncStorage, 7‑day TTL)
 
-### Auth
-- Firebase Email/Password auth.
+### Web App (Next.js)
+
+#### Dashboard
+- Real-time sync with iOS app data via Firestore
+- Light theme with teal accents matching iOS design
+- Weekly activity heatmap and meal timing distribution
+- Stats cards with color-coded status indicators
+
+#### Authentication
+- Google Sign-In
+- Email/Password authentication
+- Protected routes
+
+#### Insights
+- Plastic exposure tracking
+- Processed meat monitoring
+- Late meal detection
+- All 13 dietary flags visualized
+
+#### Doctor Report
+- AI-generated professional narrative
+- PDF export functionality
 
 ---
 
@@ -72,21 +103,30 @@ Gemini returns only applicable flags:
 ```
 
 The app also adds:
-- `late_meal` when logged after 9pm (or before 5am).
+- `late_meal` when logged after 9pm (or before 5am)
 
 ---
 
 ## Tech Stack
 
+### iOS App
 - **Expo + React Native**
 - **Firebase** (Auth, Firestore, Storage)
 - **Gemini 3 Flash** (`@google/generative-ai`)
 - **expo-image-picker**, **expo-print**, **expo-sharing**
-- **AsyncStorage** for report history + blood work metadata (current)
+
+### Web App
+- **Next.js 15**, React, TypeScript
+- **Tailwind CSS** with custom theme
+- **Framer Motion** for animations
+- **Firebase** (Auth, Firestore, Storage)
+- **Gemini 3 Flash** for AI analysis
 
 ---
 
-## Getting Started (iOS)
+## Getting Started
+
+### iOS App
 
 ```bash
 cd iosapp
@@ -95,7 +135,7 @@ npm install
 
 Create `iosapp/.env`:
 
-```
+```env
 EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_key
 EXPO_PUBLIC_FIREBASE_API_KEY=your_firebase_key
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
@@ -111,32 +151,72 @@ Run:
 npx expo start
 ```
 
-### Firebase Setup (minimum)
-- Enable **Authentication** (Email/Password)
-- Enable **Firestore**
+### Web App
+
+```bash
+npm install
+```
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_key
+```
+
+Run:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+### Firebase Setup (Required)
+- Enable **Authentication** (Google + Email/Password)
+- Enable **Firestore** with proper security rules
 - Enable **Storage**
 
 ---
 
 ## Repo Structure
 
-- `iosapp/` → iOS app (current codebase)
-- `webapp/` → planned Next.js app (patient + doctor portal)
-- `iosapp/IMPLEMENTATION_PLAN.md` → build plan
-- `iosapp/RESEARCH.md` → research + evidence notes
+```
+├── iosapp/                 # iOS app (Expo + React Native)
+│   ├── IMPLEMENTATION_PLAN.md
+│   └── RESEARCH.md
+├── src/                    # Web app (Next.js)
+│   ├── app/
+│   │   ├── page.tsx        # Landing page
+│   │   ├── login/          # Authentication
+│   │   └── app/            # Dashboard & features
+│   ├── components/
+│   ├── services/
+│   ├── context/
+│   └── types/
+└── README.md
+```
 
 ---
 
 ## Product Principles
 
-- **Capture & forget**: minimal daily engagement, no guilt.
-- **Clinician‑friendly output**: one‑page report, actionable patterns.
-- **Unusual signals**: plastics, carcinogens, timing, irritants.
-- **Preventive + reactive**: help before and after lab changes.
+- **Capture & forget**: minimal daily engagement, no guilt
+- **Clinician‑friendly output**: one‑page report, actionable patterns
+- **Unusual signals**: plastics, carcinogens, timing, irritants
+- **Preventive + reactive**: help before and after lab changes
 
 ---
 
-## Known Gaps / Next Steps
+## License
 
-- Blood work + report history are **local‑only** right now.
-- Web app not implemented yet (folder reserved).
+MIT
+
+---
+
+© 2025 DataDiet
