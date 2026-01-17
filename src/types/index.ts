@@ -20,6 +20,7 @@ export interface Meal {
   foods: FoodItem[];
   nutrition?: Nutrition;
   flags: string[];
+  status?: 'pending' | 'completed' | 'failed';
   metadata?: {
     location?: string;
     source: 'phone_photo' | 'gallery' | 'manual';
@@ -40,24 +41,39 @@ export interface BloodWork {
   notes?: string;
 }
 
+export type ConcernLevel = 'low' | 'moderate' | 'elevated';
+
+export interface SignalInsight {
+  count: number;
+  perDay?: number;
+  perWeek?: number;
+  percent?: number;
+  lateCount?: number; // For caffeine after 2pm
+  concernLevel: ConcernLevel;
+}
+
 export interface Insights {
   totalMeals: number;
   dateRange: string;
-  plastic: {
-    count: number;
-    perDay: number;
-    concernLevel: 'low' | 'moderate' | 'elevated';
-  };
-  processedMeat: {
-    count: number;
-    perWeek: number;
-    concernLevel: 'low' | 'moderate' | 'elevated';
-  };
-  mealTiming: {
-    lateMealPercent: number;
-    avgDinnerTime: string;
-    concernLevel: 'low' | 'moderate' | 'elevated';
-  };
+  daysTracked: number;
+
+  // All signal-based insights (personalized based on user selection)
+  plastic: SignalInsight;
+  plasticHot: SignalInsight;
+  processedMeat: SignalInsight;
+  charredGrilled: SignalInsight;
+  ultraProcessed: SignalInsight;
+  highSugarBeverage: SignalInsight;
+  caffeine: SignalInsight & { lateCount: number }; // Caffeine after 2pm
+  alcohol: SignalInsight;
+  friedFood: SignalInsight;
+  refinedGrain: SignalInsight;
+  highSodium: SignalInsight;
+  spicyIrritant: SignalInsight;
+  acidicTrigger: SignalInsight;
+  lateMeal: SignalInsight & { avgDinnerTime: string };
+
+  // Patterns
   patterns: {
     busiestDay: string;
     weekendVsWeekday: string;

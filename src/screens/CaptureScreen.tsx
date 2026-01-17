@@ -1,28 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   Image,
-  ActivityIndicator,
-  SafeAreaView,
-  Alert
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withSequence,
+  withTiming,
+  withDelay,
+  interpolateColor,
+} from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
+import Icon from '../components/Icon';
 import { analyzeFood } from '../services/gemini';
-import { saveMeal } from '../services/meals';
+import { savePendingMeal, updateMealWithAnalysis, markMealFailed } from '../services/meals';
+import { useTheme, useAnimatedBackground } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { ScreenHeader } from '../components/ScreenHeader';
+import { haptics } from '../utils/haptics';
+import { SPACING, TYPOGRAPHY, RADIUS, DARK, LIGHT } from '../config/designSystem';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface Props {
   navigation: any;
 }
 
 export default function CaptureScreen({ navigation }: Props) {
+  const { colors, themeProgress } = useTheme();
+  const { user } = useAuth();
   const [image, setImage] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Animated background
+  const animatedBackground = useAnimatedBackground();
+
+  // Entrance animations
+  const contentOpacity = useSharedValue(0);
+  const contentTranslate = useSharedValue(20);
+  const successScale = useSharedValue(0);
+  const successOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    contentOpacity.value = withDelay(100, withTiming(1, { duration: 400 }));
+    contentTranslate.value = withDelay(100, withTiming(0, { duration: 400 }));
+  }, []);
+
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ translateY: contentTranslate.value }],
+  }));
+
   const pickImage = async () => {
+    haptics.light();
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
@@ -36,6 +74,7 @@ export default function CaptureScreen({ navigation }: Props) {
   };
 
   const takePhoto = async () => {
+    haptics.light();
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       Alert.alert('Permission needed', 'Camera permission is required to take photos');
@@ -55,183 +94,436 @@ export default function CaptureScreen({ navigation }: Props) {
 
   const processImage = async (base64: string) => {
     setAnalyzing(true);
+    const userId = user?.uid || 'demo_user';
+
     try {
-      // Analyze with Gemini
+      // Step 1: Save pending meal immediately (fast - just image upload)
+      const mealId = await savePendingMeal(userId, base64);
+
+      // Step 2: Show success immediately - user sees instant feedback
+      setSuccess(true);
+      haptics.success();
+
+      successOpacity.value = withTiming(1, { duration: 300 });
+      successScale.value = withSequence(
+        withSpring(1.2, { damping: 10, stiffness: 200 }),
+        withSpring(1, { damping: 15, stiffness: 150 })
+      );
+
+      // Step 3: Navigate back after brief success animation
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1500);
+
+      // Step 4: Fire off analysis in background (don't await - fire and forget)
+      analyzeAndUpdateMeal(userId, mealId, base64);
+    } catch (error) {
+      console.error('Error saving meal:', error);
+      haptics.error();
+      Alert.alert('Error', 'Failed to save meal. Please try again.');
+      setAnalyzing(false);
+    }
+  };
+
+  // Background analysis function - runs async after user sees success
+  const analyzeAndUpdateMeal = async (userId: string, mealId: string, base64: string) => {
+    try {
       const analysis = await analyzeFood(base64);
 
-      // Check if it's a late meal
+      // Add late_meal flag if needed
       const hour = new Date().getHours();
       if ((hour >= 21 || hour < 5) && !analysis.flags.includes('late_meal')) {
         analysis.flags.push('late_meal');
       }
 
-      // Save to Firestore
-      await saveMeal(
-        'demo_user',
+      // Update the meal with analysis results
+      await updateMealWithAnalysis(
+        userId,
+        mealId,
         analysis.foods,
         analysis.flags,
-        analysis.estimated_nutrition,
-        base64
+        analysis.estimated_nutrition
       );
 
-      setSuccess(true);
-
-      // Navigate back after showing success
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1500);
-
+      console.log('Meal analysis complete:', mealId);
     } catch (error) {
-      console.error('Error processing image:', error);
-      Alert.alert('Error', 'Failed to analyze meal. Please try again.');
-    } finally {
-      setAnalyzing(false);
+      console.error('Error analyzing meal:', error);
+      // Mark meal as failed so user knows to retry
+      await markMealFailed(userId, mealId, 'Analysis failed');
     }
   };
 
+  const successAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: successScale.value }],
+    opacity: successOpacity.value,
+  }));
+
+  const successTextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.text, DARK.text]
+    ),
+  }));
+
+  const successSubtextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.textMuted, DARK.textMuted]
+    ),
+  }));
+
   if (success) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.successContainer}>
-          <Text style={styles.successIcon}>✓</Text>
-          <Text style={styles.successText}>Meal Logged</Text>
-          <Text style={styles.successSubtext}>Data captured. Forget about it.</Text>
-        </View>
-      </SafeAreaView>
+      <Animated.View style={[styles.container, animatedBackground]}>
+        <SafeAreaView style={styles.safe}>
+          <View style={styles.successContainer}>
+            <Animated.View
+              style={[
+                styles.successCircle,
+                { backgroundColor: `${colors.success}20` },
+                successAnimStyle,
+              ]}
+            >
+              <Icon name="check" size={48} color={colors.success} />
+            </Animated.View>
+            <Animated.Text style={[styles.successText, successTextStyle]}>
+              Meal Logged
+            </Animated.Text>
+            <Animated.Text style={[styles.successSubtext, successSubtextStyle]}>
+              Data captured. Forget about it.
+            </Animated.Text>
+          </View>
+        </SafeAreaView>
+      </Animated.View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Log Meal</Text>
-      </View>
+    <Animated.View style={[styles.container, animatedBackground]}>
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader title="Log Meal" onBack={() => navigation.goBack()} />
 
-      {analyzing ? (
-        <View style={styles.analyzingContainer}>
-          {image && <Image source={{ uri: image }} style={styles.previewImage} />}
-          <ActivityIndicator size="large" color="#4A90A4" style={styles.loader} />
-          <Text style={styles.analyzingText}>Analyzing your meal...</Text>
-        </View>
-      ) : (
-        <View style={styles.optionsContainer}>
-          <Text style={styles.instruction}>Capture your meal</Text>
-          <Text style={styles.subInstruction}>We'll remember so you don't have to</Text>
+        {analyzing ? (
+          <AnalyzingState image={image} themeProgress={themeProgress} colors={colors} />
+        ) : (
+          <Animated.View style={[styles.optionsContainer, contentStyle]}>
+            <AnimatedInstruction themeProgress={themeProgress} />
+            <AnimatedSubInstruction themeProgress={themeProgress} />
 
-          <TouchableOpacity style={styles.optionButton} onPress={takePhoto}>
-            <Text style={styles.optionIcon}>📸</Text>
-            <Text style={styles.optionText}>Take Photo</Text>
-          </TouchableOpacity>
+            <View style={styles.options}>
+              <OptionCard
+                icon="camera"
+                title="Take Photo"
+                description="Use your camera"
+                onPress={takePhoto}
+                themeProgress={themeProgress}
+                colors={colors}
+                delay={200}
+              />
 
-          <TouchableOpacity style={styles.optionButton} onPress={pickImage}>
-            <Text style={styles.optionIcon}>🖼️</Text>
-            <Text style={styles.optionText}>Choose from Gallery</Text>
-          </TouchableOpacity>
-        </View>
+              <OptionCard
+                icon="image-multiple"
+                title="Choose from Gallery"
+                description="Select an existing photo"
+                onPress={pickImage}
+                themeProgress={themeProgress}
+                colors={colors}
+                delay={300}
+              />
+            </View>
+          </Animated.View>
+        )}
+      </SafeAreaView>
+    </Animated.View>
+  );
+}
+
+function AnimatedInstruction({ themeProgress }: { themeProgress: Animated.SharedValue<number> }) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.text, DARK.text]
+    ),
+  }));
+
+  return (
+    <Animated.Text style={[styles.instruction, animatedStyle]}>
+      Capture your meal
+    </Animated.Text>
+  );
+}
+
+function AnimatedSubInstruction({ themeProgress }: { themeProgress: Animated.SharedValue<number> }) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.textMuted, DARK.textMuted]
+    ),
+  }));
+
+  return (
+    <Animated.Text style={[styles.subInstruction, animatedStyle]}>
+      We'll remember so you don't have to
+    </Animated.Text>
+  );
+}
+
+interface AnalyzingStateProps {
+  image: string | null;
+  themeProgress: Animated.SharedValue<number>;
+  colors: any;
+}
+
+function AnalyzingState({ image, themeProgress, colors }: AnalyzingStateProps) {
+  const pulseOpacity = useSharedValue(0.4);
+  const imageScale = useSharedValue(0.9);
+  const imageOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    // Pulse animation for loading indicator
+    pulseOpacity.value = withTiming(1, { duration: 800 }, () => {
+      pulseOpacity.value = withTiming(0.4, { duration: 800 });
+    });
+
+    // Image entrance
+    imageOpacity.value = withTiming(1, { duration: 300 });
+    imageScale.value = withSpring(1, { damping: 15, stiffness: 100 });
+  }, []);
+
+  const imageStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: imageScale.value }],
+    opacity: imageOpacity.value,
+  }));
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+  }));
+
+  const textStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.textMuted, DARK.textMuted]
+    ),
+  }));
+
+  const subtextStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.textFaint, DARK.textFaint]
+    ),
+  }));
+
+  return (
+    <View style={styles.analyzingContainer}>
+      {image && (
+        <Animated.Image
+          source={{ uri: image }}
+          style={[styles.previewImage, imageStyle]}
+        />
       )}
-    </SafeAreaView>
+      <Animated.View style={[styles.loaderContainer, pulseStyle]}>
+        <Icon name="brain" size={32} color={colors.primary} />
+      </Animated.View>
+      <Animated.Text style={[styles.analyzingText, textStyle]}>
+        Analyzing your meal...
+      </Animated.Text>
+      <Animated.Text style={[styles.analyzingSubtext, subtextStyle]}>
+        Identifying foods and nutritional signals
+      </Animated.Text>
+    </View>
+  );
+}
+
+interface OptionCardProps {
+  icon: string;
+  title: string;
+  description: string;
+  onPress: () => void;
+  themeProgress: Animated.SharedValue<number>;
+  colors: any;
+  delay: number;
+}
+
+function OptionCard({ icon, title, description, onPress, themeProgress, colors, delay }: OptionCardProps) {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(1, { duration: 400 }));
+    translateY.value = withDelay(delay, withTiming(0, { duration: 400 }));
+  }, []);
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
+    opacity: opacity.value,
+    backgroundColor: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.surface, DARK.surface]
+    ),
+    borderColor: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.border, DARK.border]
+    ),
+  }));
+
+  const titleStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.text, DARK.text]
+    ),
+  }));
+
+  const descStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [LIGHT.textMuted, DARK.textMuted]
+    ),
+  }));
+
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[styles.optionCard, animatedStyle]}
+    >
+      <View style={[styles.optionIconContainer, { backgroundColor: `${colors.primary}15` }]}>
+        <Icon name={icon as any} size={28} color={colors.primary} />
+      </View>
+      <View style={styles.optionTextContainer}>
+        <Animated.Text style={[styles.optionTitle, titleStyle]}>{title}</Animated.Text>
+        <Animated.Text style={[styles.optionDesc, descStyle]}>
+          {description}
+        </Animated.Text>
+      </View>
+      <Icon name="chevron-right" size={24} color={colors.textMuted} />
+    </AnimatedPressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D1117',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 10,
-  },
-  backButton: {
-    color: '#58A6FF',
-    fontSize: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginLeft: 20,
+  safe: {
+    flex: 1,
   },
   optionsContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: SPACING.xxl,
   },
   instruction: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 8,
+    fontFamily: TYPOGRAPHY.fontFamily.bold,
+    fontSize: TYPOGRAPHY.sizes.displaySmall,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
   },
   subInstruction: {
-    fontSize: 16,
-    color: '#8B949E',
-    marginBottom: 40,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    fontSize: TYPOGRAPHY.sizes.bodyLarge,
+    textAlign: 'center',
+    marginBottom: SPACING.xxxxl,
   },
-  optionButton: {
+  options: {
+    gap: SPACING.md,
+  },
+  optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#21262D',
-    paddingVertical: 20,
-    paddingHorizontal: 30,
-    borderRadius: 16,
-    marginBottom: 16,
-    width: '100%',
+    padding: SPACING.lg,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
-    borderColor: '#30363D',
+    gap: SPACING.md,
   },
-  optionIcon: {
-    fontSize: 32,
-    marginRight: 16,
+  optionIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  optionText: {
-    fontSize: 18,
-    color: '#FFFFFF',
-    fontWeight: '500',
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.sizes.bodyLarge,
+  },
+  optionDesc: {
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    fontSize: TYPOGRAPHY.sizes.bodySmall,
+    marginTop: 2,
   },
   analyzingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: SPACING.xxl,
   },
   previewImage: {
     width: 200,
     height: 200,
-    borderRadius: 16,
-    marginBottom: 20,
+    borderRadius: RADIUS.xl,
+    marginBottom: SPACING.xl,
   },
-  loader: {
-    marginBottom: 16,
+  loaderContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(19, 200, 236, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.lg,
   },
   analyzingText: {
-    fontSize: 18,
-    color: '#8B949E',
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.sizes.bodyLarge,
+    marginBottom: SPACING.xs,
+  },
+  analyzingSubtext: {
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    fontSize: TYPOGRAPHY.sizes.bodyMedium,
   },
   successContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  successIcon: {
-    fontSize: 80,
-    color: '#238636',
-    marginBottom: 20,
+  successCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.xxl,
   },
   successText: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 8,
+    fontFamily: TYPOGRAPHY.fontFamily.bold,
+    fontSize: TYPOGRAPHY.sizes.headlineLarge,
+    marginBottom: SPACING.sm,
   },
   successSubtext: {
-    fontSize: 16,
-    color: '#8B949E',
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
+    fontSize: TYPOGRAPHY.sizes.bodyLarge,
   },
 });

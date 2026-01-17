@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
 export interface FoodItem {
   name: string;
@@ -27,17 +27,36 @@ export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
   const prompt = `Analyze this meal image. Return ONLY valid JSON with no markdown formatting:
 {
   "foods": [{"name": "string", "portion": "string", "container": "plastic_bottle|glass|can|none"}],
-  "flags": ["plastic_bottle", "processed_meat", "late_meal", "high_sodium", "ultra_processed"],
+  "flags": [],
   "estimated_nutrition": {"calories": number, "protein": number, "carbs": number, "fat": number, "sodium": number}
 }
 
-Flag rules:
-- plastic_bottle: any beverage in plastic container
-- processed_meat: bacon, sausage, hot dog, ham, salami, pepperoni, deli meat
-- high_sodium: estimated sodium > 1000mg
-- ultra_processed: frozen meals, fast food, packaged snacks
+Apply these flags when detected (only include applicable ones):
 
-Only include applicable flags. Return valid JSON only.`;
+PLASTIC & CONTAINERS:
+- "plastic_bottle": beverage in plastic bottle (water, soda, juice, sports drink)
+- "plastic_container_hot": hot food served in plastic container (takeout, microwave meals)
+
+PROCESSED FOODS:
+- "processed_meat": bacon, sausage, hot dog, ham, salami, pepperoni, deli meat, spam, jerky
+- "ultra_processed": frozen meals, fast food, packaged snacks, instant noodles, chicken nuggets, fish sticks
+
+COOKING METHODS:
+- "charred_grilled": visibly charred, blackened, or heavily grilled food with char marks
+- "fried": deep fried or pan fried foods (french fries, fried chicken, tempura, chips)
+
+BEVERAGES:
+- "high_sugar_beverage": soda, fruit juice, energy drinks, sweetened coffee/tea, milkshakes, smoothies with added sugar
+- "caffeine": coffee, espresso, tea, energy drinks, caffeinated soda
+- "alcohol": beer, wine, cocktails, spirits, hard seltzer
+
+NUTRITIONAL CONCERNS:
+- "high_sodium": estimated sodium > 1000mg (fast food, chips, cured meats, soy sauce heavy dishes)
+- "refined_grain": white bread, white rice, regular pasta, pastries, most baked goods, pizza dough
+- "spicy_irritant": very spicy foods, hot sauce, chili peppers, wasabi, horseradish
+- "acidic_trigger": citrus fruits, tomato-based dishes, vinegar-heavy foods, coffee
+
+Only include flags that clearly apply. Return valid JSON only.`;
 
   try {
     const result = await model.generateContent([
@@ -60,18 +79,31 @@ export async function generateDoctorReport(
   insights: Record<string, any>,
   bloodWork?: Record<string, any>
 ): Promise<string> {
+  // Use explicit selected period if provided, otherwise fall back to dateRange
+  const reportingPeriod = insights.selectedPeriodLabel
+    ? `${insights.selectedPeriodLabel} (${insights.selectedPeriodDays} days)`
+    : insights.dateRange || 'N/A';
+
   const prompt = `Generate a professional 1-page dietary pattern report for a physician.
 
-Patient Dietary Data:
+Reporting Period: ${reportingPeriod}
+Total Meals Analyzed: ${insights.totalMeals || 0} meals
+
+Sample of Recent Meals:
 ${mealSummary}
 
 Key Insights:
 - Plastic bottle beverages: ${insights.plasticCount || 0} (${insights.plasticPerDay?.toFixed(1) || 0}/day)
 - Processed meat servings: ${insights.processedMeatCount || 0} (${insights.processedMeatPerWeek?.toFixed(1) || 0}/week)
+- Ultra-processed foods: ${insights.ultraProcessedPercent || 0}% of meals
 - Meals after 9pm: ${insights.lateMealPercent || 0}%
 - Average dinner time: ${insights.avgDinnerTime || 'N/A'}
+- Caffeine intake: ${insights.caffeinePerDay?.toFixed(1) || 0}/day (${insights.lateCaffeineCount || 0} after 2pm)
+- Alcohol: ${insights.alcoholPerWeek?.toFixed(1) || 0} drinks/week
+- Fried foods: ${insights.friedFoodPerWeek?.toFixed(1) || 0}/week
+- High sodium meals: ${insights.highSodiumPerDay?.toFixed(1) || 0}/day
 - Total meals logged: ${insights.totalMeals || 0}
-- Reporting period: ${insights.dateRange || 'N/A'}
+- Days of data: ${insights.daysTracked || 'N/A'}
 
 ${bloodWork ? `Blood Work Results:
 - Total Cholesterol: ${bloodWork.totalCholesterol} mg/dL
