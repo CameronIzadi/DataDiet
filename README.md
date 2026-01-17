@@ -9,6 +9,13 @@ DataDiet is a **dietary black box** and **health‑infrastructure platform** for
 **Purpose**
 - Create a reliable dietary record that helps patients and clinicians answer “what changed?” when health signals shift.
 
+**Problems We’re Solving**
+- **Diet recall is unreliable**: Patients can’t accurately remember what they ate days or months ago, yet clinicians need that history when labs or symptoms change.
+- **Most diet apps optimize for daily engagement**: Calorie‑first tools create fatigue, guilt, and dropout, so they don’t produce long‑term records.
+- **No clinician‑ready output**: Existing trackers don’t translate diet history into concise, medical‑grade summaries.
+- **Untracked signals matter**: Plastics, carcinogenic cooking methods, meal timing, irritants, and ultra‑processed exposure aren’t tracked in typical apps.
+- **High societal cost**: Diet‑related disease burden is massive; preventing and explaining changes requires longitudinal data.
+
 **Current Apps**
 - **iOS app (Expo)**: meal capture, insights, blood work input, doctor reports, PDF export.
 - **Web app (planned)**: patient + doctor portal for review, messaging, and document requests.
