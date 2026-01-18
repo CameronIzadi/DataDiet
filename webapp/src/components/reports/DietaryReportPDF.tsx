@@ -531,12 +531,19 @@ export const DietaryReportPDF: React.FC<ReportData> = ({
 
       {/* Page 2 - Blood Work & Recommendations */}
       <Page size="A4" style={styles.page}>
-        {/* Blood Work Correlation (if available) */}
+        {/* Blood Work Correlation (if available) - Only show out-of-range values */}
         {bloodWork && (
+          // Check if there are any out-of-range values
+          (bloodWork.totalCholesterol != null && bloodWork.totalCholesterol >= 200) ||
+          (bloodWork.ldl != null && bloodWork.ldl >= 100) ||
+          (bloodWork.hdl != null && bloodWork.hdl < 40) ||
+          (bloodWork.triglycerides != null && bloodWork.triglycerides >= 150) ||
+          (bloodWork.fastingGlucose != null && bloodWork.fastingGlucose >= 100)
+        ) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Laboratory Correlation Analysis</Text>
+            <Text style={styles.sectionTitle}>Laboratory Findings Requiring Attention</Text>
             <Text style={[styles.reportMeta, { marginBottom: 10 }]}>
-              Specimen Date: {bloodWork.testDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              Specimen Date: {bloodWork!.testDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </Text>
 
             <View style={styles.table}>
@@ -547,50 +554,63 @@ export const DietaryReportPDF: React.FC<ReportData> = ({
                 <Text style={[styles.tableHeaderCell, { width: '25%' }]}>Interpretation</Text>
               </View>
 
+              {/* Total Cholesterol - only show if >= 200 (Borderline or Elevated) */}
+              {bloodWork!.totalCholesterol != null && bloodWork!.totalCholesterol >= 200 && (
               <View style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: '30%' }]}>Total Cholesterol</Text>
-                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork.totalCholesterol} mg/dL</Text>
+                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork!.totalCholesterol} mg/dL</Text>
                 <Text style={[styles.tableCellSecondary, { width: '25%' }]}>&lt;200 mg/dL</Text>
                 <Text style={[styles.tableCell, { width: '25%' }]}>
-                  {bloodWork.totalCholesterol >= 240 ? 'Elevated' : bloodWork.totalCholesterol >= 200 ? 'Borderline' : 'Desirable'}
+                  {bloodWork!.totalCholesterol >= 240 ? 'Elevated' : 'Borderline'}
                 </Text>
               </View>
+              )}
 
+              {/* LDL - only show if >= 100 (Above Optimal) */}
+              {bloodWork!.ldl != null && bloodWork!.ldl >= 100 && (
               <View style={[styles.tableRow, styles.tableRowAlt]}>
                 <Text style={[styles.tableCell, { width: '30%' }]}>LDL Cholesterol</Text>
-                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork.ldl} mg/dL</Text>
+                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork!.ldl} mg/dL</Text>
                 <Text style={[styles.tableCellSecondary, { width: '25%' }]}>&lt;100 mg/dL</Text>
                 <Text style={[styles.tableCell, { width: '25%' }]}>
-                  {bloodWork.ldl >= 160 ? 'High' : bloodWork.ldl >= 130 ? 'Borderline' : 'Near Optimal'}
+                  {bloodWork!.ldl >= 160 ? 'High' : bloodWork!.ldl >= 130 ? 'Borderline' : 'Above Optimal'}
                 </Text>
               </View>
+              )}
 
+              {/* HDL - only show if < 40 (Low - this is bad for HDL) */}
+              {bloodWork!.hdl != null && bloodWork!.hdl < 40 && (
               <View style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: '30%' }]}>HDL Cholesterol</Text>
-                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork.hdl} mg/dL</Text>
+                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork!.hdl} mg/dL</Text>
                 <Text style={[styles.tableCellSecondary, { width: '25%' }]}>&gt;40 mg/dL</Text>
-                <Text style={[styles.tableCell, { width: '25%' }]}>
-                  {bloodWork.hdl < 40 ? 'Low Risk Factor' : bloodWork.hdl >= 60 ? 'Cardioprotective' : 'Acceptable'}
-                </Text>
+                <Text style={[styles.tableCell, { width: '25%' }]}>Low Risk Factor</Text>
               </View>
+              )}
 
+              {/* Triglycerides - only show if >= 150 (Borderline or High) */}
+              {bloodWork!.triglycerides != null && bloodWork!.triglycerides >= 150 && (
               <View style={[styles.tableRow, styles.tableRowAlt]}>
                 <Text style={[styles.tableCell, { width: '30%' }]}>Triglycerides</Text>
-                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork.triglycerides} mg/dL</Text>
+                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork!.triglycerides} mg/dL</Text>
                 <Text style={[styles.tableCellSecondary, { width: '25%' }]}>&lt;150 mg/dL</Text>
                 <Text style={[styles.tableCell, { width: '25%' }]}>
-                  {bloodWork.triglycerides >= 200 ? 'High' : bloodWork.triglycerides >= 150 ? 'Borderline' : 'Normal'}
+                  {bloodWork!.triglycerides >= 200 ? 'High' : 'Borderline'}
                 </Text>
               </View>
+              )}
 
+              {/* Fasting Glucose - only show if >= 100 (Prediabetic or Diabetic) */}
+              {bloodWork!.fastingGlucose != null && bloodWork!.fastingGlucose >= 100 && (
               <View style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: '30%' }]}>Fasting Glucose</Text>
-                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork.fastingGlucose} mg/dL</Text>
+                <Text style={[styles.tableCell, { width: '20%' }]}>{bloodWork!.fastingGlucose} mg/dL</Text>
                 <Text style={[styles.tableCellSecondary, { width: '25%' }]}>&lt;100 mg/dL</Text>
                 <Text style={[styles.tableCell, { width: '25%' }]}>
-                  {bloodWork.fastingGlucose >= 126 ? 'Diabetic Range' : bloodWork.fastingGlucose >= 100 ? 'Prediabetic' : 'Normal'}
+                  {bloodWork!.fastingGlucose >= 126 ? 'Diabetic Range' : 'Prediabetic'}
                 </Text>
               </View>
+              )}
             </View>
           </View>
         )}

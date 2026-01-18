@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, BarChart3, FileText, Droplets, LogOut, User, Sun, Moon, MessageCircle } from 'lucide-react';
+import { Home, BarChart3, FileText, Droplets, LogOut, User, Sun, Moon, MessageCircle, MessageSquare } from 'lucide-react';
 import { onAuthChange, signOutUser } from '@/services/auth';
 import { User as FirebaseUser } from 'firebase/auth';
 import { useTheme } from '@/context/ThemeContext';
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/app/insights', label: 'Insights', icon: BarChart3 },
   { href: '/app/messages', label: 'Messages', icon: MessageCircle },
   { href: '/app/bloodwork', label: 'Blood Work', icon: Droplets },
+  { href: '/app/chat', label: 'Chat', icon: MessageSquare },
   { href: '/app/report', label: 'Report', icon: FileText },
 ];
 
@@ -60,7 +61,7 @@ export function Navigation() {
                   <span className="font-semibold text-warm-900 dark:text-neutral-100">DataDiet</span>
                 </Link>
               </div>
-              
+
               <div className="flex items-center gap-1">
                 {navItems.map(({ href, label, icon: Icon }) => {
                   const isActive = pathname === href;

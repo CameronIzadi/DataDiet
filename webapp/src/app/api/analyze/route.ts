@@ -106,6 +106,88 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ result: result.response.text() });
       }
 
+      case 'queryFoodHistory': {
+        const { prompt } = data;
+        if (!prompt) {
+          return NextResponse.json(
+            { error: 'Missing prompt' },
+            { status: 400 }
+          );
+        }
+
+        const result = await model.generateContent(prompt);
+        return NextResponse.json({ result: result.response.text() });
+      }
+
+      case 'extractBloodWork': {
+        const { base64Image, mimeType } = data;
+        if (!base64Image) {
+          return NextResponse.json(
+            { error: 'Missing image data' },
+            { status: 400 }
+          );
+        }
+
+        const extractionPrompt = `You are a medical document analyzer. Extract ALL blood work values from this lab report image.
+
+Return a JSON object with:
+1. "testDate": The date of the test if visible (format: "YYYY-MM-DD"), or null
+2. "metrics": An object where each key is the test name and value is an object with:
+   - "value": The numeric value
+   - "unit": The unit of measurement (e.g., "mg/dL", "mmol/L", "%", "cells/mcL")
+   - "referenceRange": The reference range if shown (e.g., "< 200", "70-100", "4.5-11.0")
+   - "status": One of "low", "normal", "borderline", or "high" based on whether the value is flagged or outside reference range
+
+Common blood work tests to look for (but extract ALL tests you find):
+- Lipid Panel: Total Cholesterol, LDL, HDL, Triglycerides, VLDL, Non-HDL Cholesterol
+- Blood Sugar: Fasting Glucose, HbA1c, Random Glucose
+- Complete Blood Count (CBC): WBC, RBC, Hemoglobin, Hematocrit, Platelets, MCV, MCH, MCHC, RDW
+- Metabolic Panel: Sodium, Potassium, Chloride, CO2, BUN, Creatinine, Glucose, Calcium
+- Liver Function: ALT, AST, ALP, Bilirubin, Albumin, Total Protein
+- Thyroid: TSH, T3, T4, Free T4
+- Iron Studies: Iron, Ferritin, TIBC, Transferrin Saturation
+- Vitamins: Vitamin D, Vitamin B12, Folate
+- Inflammation: CRP, ESR
+- Other: Uric Acid, Magnesium, Phosphorus, GFR, PSA, etc.
+
+IMPORTANT:
+- Extract EVERY test value you can see, not just the common ones
+- Use the exact test name as shown on the report
+- If a value is flagged as High (H) or Low (L), set the appropriate status
+- Return ONLY valid JSON, no markdown or explanation
+
+Example response format:
+{
+  "testDate": "2024-01-15",
+  "metrics": {
+    "Total Cholesterol": { "value": 195, "unit": "mg/dL", "referenceRange": "< 200", "status": "normal" },
+    "LDL Cholesterol": { "value": 120, "unit": "mg/dL", "referenceRange": "< 100", "status": "high" },
+    "Hemoglobin": { "value": 14.2, "unit": "g/dL", "referenceRange": "12.0-16.0", "status": "normal" }
+  }
+}`;
+
+        const result = await model.generateContent([
+          extractionPrompt,
+          { inlineData: { data: base64Image, mimeType: mimeType || 'image/jpeg' } }
+        ]);
+
+        const responseText = result.response.text();
+
+        // Try to parse the JSON response
+        try {
+          // Remove markdown code blocks if present
+          const cleanJson = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const parsed = JSON.parse(cleanJson);
+          return NextResponse.json({ result: parsed });
+        } catch {
+          // If parsing fails, return the raw text for debugging
+          return NextResponse.json({
+            error: 'Failed to parse blood work data',
+            rawResponse: responseText
+          }, { status: 422 });
+        }
+      }
+
       default:
         return NextResponse.json(
           { error: 'Invalid action' },

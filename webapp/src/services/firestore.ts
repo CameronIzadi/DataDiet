@@ -42,11 +42,14 @@ interface FirestoreMealFromIOS {
 interface FirestoreBloodWork {
   userId: string;
   testDate: Timestamp;
-  totalCholesterol: number;
-  ldl: number;
-  hdl: number;
-  triglycerides: number;
-  fastingGlucose: number;
+  totalCholesterol?: number;
+  ldl?: number;
+  hdl?: number;
+  triglycerides?: number;
+  fastingGlucose?: number;
+  hba1c?: number;
+  metrics?: Record<string, { value: number; unit: string; referenceRange?: string; status?: 'low' | 'normal' | 'borderline' | 'high' }>;
+  sourceFileName?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -123,6 +126,9 @@ function bloodWorkToFirestore(bloodWork: BloodWork, userId: string): Omit<Firest
     hdl: bloodWork.hdl,
     triglycerides: bloodWork.triglycerides,
     fastingGlucose: bloodWork.fastingGlucose,
+    hba1c: bloodWork.hba1c,
+    metrics: bloodWork.metrics,
+    sourceFileName: bloodWork.sourceFileName,
   };
 }
 
@@ -135,6 +141,9 @@ function bloodWorkFromFirestore(id: string, data: FirestoreBloodWork): BloodWork
     hdl: data.hdl,
     triglycerides: data.triglycerides,
     fastingGlucose: data.fastingGlucose,
+    hba1c: data.hba1c,
+    metrics: data.metrics,
+    sourceFileName: data.sourceFileName,
   };
 }
 
@@ -349,15 +358,16 @@ export async function saveUserBloodWork(userId: string, bloodWork: BloodWork): P
   }
 
   try {
-    const bloodWorkRef = doc(db, 'bloodwork', userId);
+    // Store blood work under user's subcollection: users/{userId}/bloodwork/{bloodWorkId}
+    const bloodWorkRef = doc(db, 'users', userId, 'bloodwork', bloodWork.id);
     const now = Timestamp.now();
-    
+
     await setDoc(bloodWorkRef, {
       ...bloodWorkToFirestore(bloodWork, userId),
       createdAt: now,
       updatedAt: now,
-    }, { merge: true });
-    
+    });
+
     return true;
   } catch (error) {
     console.error('Error saving blood work:', error);
@@ -366,11 +376,30 @@ export async function saveUserBloodWork(userId: string, bloodWork: BloodWork): P
 }
 
 /**
- * Subscribe to blood work updates for a user
+ * Delete blood work for a user
+ */
+export async function deleteUserBloodWork(userId: string, bloodWorkId: string): Promise<boolean> {
+  if (!db || !isFirebaseConfigured) {
+    console.warn('Firestore not configured');
+    return false;
+  }
+
+  try {
+    await deleteDoc(doc(db, 'users', userId, 'bloodwork', bloodWorkId));
+    console.log(`🗑️ Deleted blood work ${bloodWorkId}`);
+    return true;
+  } catch (error) {
+    console.error('Error deleting blood work:', error);
+    return false;
+  }
+}
+
+/**
+ * Subscribe to blood work updates for a user (from users/{userId}/bloodwork)
  */
 export function subscribeToBloodWork(
   userId: string,
-  onBloodWorkUpdate: (bloodWork: BloodWork | null) => void,
+  onBloodWorkUpdate: (bloodWork: BloodWork[]) => void,
   onError?: (error: Error) => void
 ): () => void {
   if (!db || !isFirebaseConfigured) {
@@ -378,16 +407,18 @@ export function subscribeToBloodWork(
   }
 
   try {
-    const bloodWorkRef = doc(db, 'bloodwork', userId);
-    
+    // Read from users/{userId}/bloodwork collection
+    const bloodWorkRef = collection(db, 'users', userId, 'bloodwork');
+    const q = query(bloodWorkRef, orderBy('testDate', 'desc'));
+
     const unsubscribe = onSnapshot(
-      bloodWorkRef,
+      q,
       (snapshot) => {
-        if (snapshot.exists()) {
-          onBloodWorkUpdate(bloodWorkFromFirestore(snapshot.id, snapshot.data() as FirestoreBloodWork));
-        } else {
-          onBloodWorkUpdate(null);
-        }
+        const bloodWorkList: BloodWork[] = [];
+        snapshot.forEach((docSnapshot) => {
+          bloodWorkList.push(bloodWorkFromFirestore(docSnapshot.id, docSnapshot.data() as FirestoreBloodWork));
+        });
+        onBloodWorkUpdate(bloodWorkList);
       },
       (error: any) => {
         // Don't log permission errors - they're expected if rules aren't configured
@@ -395,12 +426,12 @@ export function subscribeToBloodWork(
         if (!isPermissionError) {
           console.error('Error in blood work subscription:', error);
         }
-        // Return null for bloodwork on any error
-        onBloodWorkUpdate(null);
+        // Return empty array for bloodwork on any error
+        onBloodWorkUpdate([]);
         if (onError) onError(error);
       }
     );
-    
+
     return unsubscribe;
   } catch (error) {
     return () => {};

@@ -12,20 +12,23 @@ import {
   subscribeToBloodWork,
   addUserMeal,
   saveUserBloodWork,
-  deleteUserMeal
+  deleteUserMeal,
+  deleteUserBloodWork
 } from '@/services/firestore';
 import { debugLog } from '@/lib/debug';
 
 interface AppContextType {
   meals: Meal[];
-  bloodWork: BloodWork | null;
+  bloodWork: BloodWork | null; // Most recent blood work (for AI chat)
+  bloodWorkHistory: BloodWork[]; // All blood work records
   insights: Insights;
   isLoading: boolean;
   isSyncing: boolean;
   user: User | null;
   addMeal: (meal: Omit<Meal, 'id'>) => Promise<void>;
   deleteMeal: (mealId: string) => Promise<void>;
-  setBloodWork: (bloodWork: BloodWork) => Promise<void>;
+  addBloodWork: (bloodWork: BloodWork) => Promise<void>;
+  deleteBloodWork: (bloodWorkId: string) => Promise<void>;
   loadDemoData: () => void;
   clearData: () => void;
 }
@@ -35,10 +38,17 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [meals, setMeals] = useState<Meal[]>([]);
-  const [bloodWork, setBloodWorkState] = useState<BloodWork | null>(null);
+  const [bloodWorkHistory, setBloodWorkHistory] = useState<BloodWork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [insights, setInsights] = useState<Insights>(() => calculateInsights([]));
+
+  // Get most recent blood work for AI chat
+  const bloodWork = bloodWorkHistory.length > 0
+    ? bloodWorkHistory.reduce((latest, current) =>
+        new Date(current.testDate) > new Date(latest.testDate) ? current : latest
+      )
+    : null;
 
   // Listen to auth state changes
   useEffect(() => {
@@ -56,7 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const loadLocalData = useCallback(() => {
     const savedMeals = localStorage.getItem('dietary-blackbox-meals');
     const savedBloodWork = localStorage.getItem('dietary-blackbox-bloodwork');
-    
+
     if (savedMeals) {
       try {
         const parsed = JSON.parse(savedMeals);
@@ -68,26 +78,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         console.error('Error parsing saved meals:', e);
         setMeals(DEMO_MEALS);
-        setBloodWorkState(DEMO_BLOOD_WORK);
+        setBloodWorkHistory([DEMO_BLOOD_WORK]);
       }
     } else {
       // Load demo data by default
       setMeals(DEMO_MEALS);
-      setBloodWorkState(DEMO_BLOOD_WORK);
+      setBloodWorkHistory([DEMO_BLOOD_WORK]);
     }
-    
+
     if (savedBloodWork) {
       try {
         const parsed = JSON.parse(savedBloodWork);
-        setBloodWorkState({
-          ...parsed,
-          testDate: new Date(parsed.testDate)
-        });
+        // Handle both old single object and new array format
+        if (Array.isArray(parsed)) {
+          setBloodWorkHistory(parsed.map((bw: BloodWork) => ({
+            ...bw,
+            testDate: new Date(bw.testDate)
+          })));
+        } else {
+          // Legacy single blood work - convert to array
+          setBloodWorkHistory([{
+            ...parsed,
+            testDate: new Date(parsed.testDate)
+          }]);
+        }
       } catch (e) {
         console.error('Error parsing saved blood work:', e);
       }
     }
-    
+
     setIsLoading(false);
   }, []);
 
@@ -137,17 +156,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       unsubscribeBloodWork = subscribeToBloodWork(
         user.uid,
-        (firestoreBloodWork) => {
-          setBloodWorkState(firestoreBloodWork);
+        (bloodWorkList) => {
+          // Now receives BloodWork[] directly from the subscription
+          setBloodWorkHistory(bloodWorkList);
         },
-        (error) => {
+        () => {
           // Blood work is optional - silently continue
-          setBloodWorkState(null);
+          setBloodWorkHistory([]);
         }
       );
     } catch (e) {
       debugLog('Failed to subscribe to blood work');
-      setBloodWorkState(null);
+      setBloodWorkHistory([]);
     }
 
     return () => {
@@ -169,10 +189,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [meals, isLoading, user]);
 
   useEffect(() => {
-    if (!isLoading && !user && bloodWork) {
-      localStorage.setItem('dietary-blackbox-bloodwork', JSON.stringify(bloodWork));
+    if (!isLoading && !user && bloodWorkHistory.length > 0) {
+      localStorage.setItem('dietary-blackbox-bloodwork', JSON.stringify(bloodWorkHistory));
     }
-  }, [bloodWork, isLoading, user]);
+  }, [bloodWorkHistory, isLoading, user]);
 
   // Add meal - saves to Firestore if logged in, localStorage otherwise
   const addMeal = useCallback(async (meal: Omit<Meal, 'id'>) => {
@@ -181,7 +201,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsSyncing(true);
       const newMeal = await addUserMeal(user.uid, meal);
       setIsSyncing(false);
-      
+
       if (!newMeal) {
         // Fallback to local if Firestore fails
         const localMeal: Meal = {
@@ -215,26 +235,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  // Set blood work - saves to Firestore if logged in
-  const setBloodWork = useCallback(async (bw: BloodWork) => {
+  // Add blood work - saves to Firestore if logged in
+  const addBloodWork = useCallback(async (bw: BloodWork) => {
     if (user && isFirebaseConfigured) {
       setIsSyncing(true);
       await saveUserBloodWork(user.uid, bw);
       setIsSyncing(false);
       // Subscription will update blood work automatically
     } else {
-      setBloodWorkState(bw);
+      setBloodWorkHistory(prev => [bw, ...prev]);
+    }
+  }, [user]);
+
+  // Delete blood work
+  const deleteBloodWork = useCallback(async (bloodWorkId: string) => {
+    if (user && isFirebaseConfigured) {
+      setIsSyncing(true);
+      await deleteUserBloodWork(user.uid, bloodWorkId);
+      setIsSyncing(false);
+      // Subscription will update blood work history automatically
+    } else {
+      setBloodWorkHistory(prev => prev.filter(bw => bw.id !== bloodWorkId));
     }
   }, [user]);
 
   const loadDemoData = useCallback(() => {
     setMeals(DEMO_MEALS);
-    setBloodWorkState(DEMO_BLOOD_WORK);
+    setBloodWorkHistory([DEMO_BLOOD_WORK]);
   }, []);
 
   const clearData = useCallback(() => {
     setMeals([]);
-    setBloodWorkState(null);
+    setBloodWorkHistory([]);
     localStorage.removeItem('dietary-blackbox-meals');
     localStorage.removeItem('dietary-blackbox-bloodwork');
   }, []);
@@ -243,13 +275,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       meals,
       bloodWork,
+      bloodWorkHistory,
       insights,
       isLoading,
       isSyncing,
       user,
       addMeal,
       deleteMeal,
-      setBloodWork,
+      addBloodWork,
+      deleteBloodWork,
       loadDemoData,
       clearData
     }}>
