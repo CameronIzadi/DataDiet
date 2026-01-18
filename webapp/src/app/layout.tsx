@@ -15,8 +15,16 @@ export const metadata: Metadata = {
   title: "DataDiet — AI-Powered Dietary Intelligence",
   description: "Your silent health companion. Capture meals passively, build a dietary record, and get doctor-ready insights when you need them.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

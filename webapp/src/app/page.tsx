@@ -162,265 +162,399 @@ function BentoCard({ children, className = '', hover = true }: { children: React
   );
 }
 
-// Interactive phone mockup
+// iOS-style Tab Bar Icon components
+function AppleIcon({ active }: { active?: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#14b8a6' : '#9ca3af'} strokeWidth="1.5">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+      <path d="M12 6v2m0 8v2M6 12h2m8 0h2" />
+      <path d="M9 9l1.5 1.5M13.5 13.5L15 15M9 15l1.5-1.5M13.5 10.5L15 9" />
+    </svg>
+  );
+}
+
+function ChartIcon({ active }: { active?: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#14b8a6' : '#9ca3af'} strokeWidth="1.5">
+      <path d="M3 3v18h18" />
+      <path d="M7 16l4-6 4 4 4-8" />
+    </svg>
+  );
+}
+
+function DocIcon({ active }: { active?: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#14b8a6' : '#9ca3af'} strokeWidth="1.5">
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <path d="M8 6h8M8 10h8M8 14h4" />
+    </svg>
+  );
+}
+
+function HistoryIcon({ active }: { active?: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#14b8a6' : '#9ca3af'} strokeWidth="1.5">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+// Smooth line chart SVG for insights
+function MiniLineChart({ animate }: { animate?: boolean }) {
+  return (
+    <svg width="100%" height="40" viewBox="0 0 200 40" className="overflow-visible">
+      <defs>
+        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <motion.path
+        d="M0,35 Q20,30 40,28 T80,25 T120,15 T160,20 T200,25"
+        fill="none"
+        stroke="#14b8a6"
+        strokeWidth="2"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
+      />
+      <motion.path
+        d="M0,35 Q20,30 40,28 T80,25 T120,15 T160,20 T200,25 L200,40 L0,40 Z"
+        fill="url(#chartGradient)"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      />
+    </svg>
+  );
+}
+
+// Interactive phone mockup - Redesigned to match iOS app
 function InteractivePhone({ activeScreen, setActiveScreen }: { activeScreen: number; setActiveScreen: (n: number) => void }) {
+  const [insightsPeriod, setInsightsPeriod] = useState(0); // 0 = Week, 1 = 1M
+
+  // Auto-cycle through Week and 1M when on Insights screen
+  useEffect(() => {
+    if (activeScreen === 1) {
+      const cycleTimer = setInterval(() => {
+        setInsightsPeriod(prev => prev === 0 ? 1 : 0);
+      }, 2500);
+      return () => clearInterval(cycleTimer);
+    } else {
+      setInsightsPeriod(0);
+    }
+  }, [activeScreen]);
+
+  // Data for different periods
+  const periodData = {
+    week: { meals: 7, days: 7, signals: 14, mealsPerDay: '1.0', dateRange: '1/10 - 1/16', chartLabel: 'Last 7 days' },
+    month: { meals: 28, days: 30, signals: 42, mealsPerDay: '0.9', dateRange: '12/17 - 1/16', chartLabel: 'Last 30 days' },
+  };
+  const currentData = insightsPeriod === 0 ? periodData.week : periodData.month;
+
+  // Simplified Tab Bar Component - uses explicit colors to avoid dark mode inheritance
+  const TabBar = ({ activeTab }: { activeTab: number }) => (
+    <div className="absolute bottom-0 left-0 right-0 p-3 pb-5">
+      <div className="rounded-2xl py-2 px-1 flex justify-around shadow-lg" style={{ backgroundColor: '#ffffff' }}>
+        {[
+          { label: 'Log', active: activeTab === 0 },
+          { label: 'Insights', active: activeTab === 1 },
+          { label: 'Report', active: activeTab === 2 },
+          { label: 'History', active: activeTab === 3 },
+        ].map((tab, i) => (
+          <div key={i} className="flex flex-col items-center px-2">
+            <div
+              className="w-5 h-5 rounded-md mb-0.5 flex items-center justify-center"
+              style={{ backgroundColor: tab.active ? '#ccfbf1' : 'transparent' }}
+            >
+              {i === 0 && <Camera className="w-3.5 h-3.5" style={{ color: tab.active ? '#0d9488' : '#9ca3af' }} strokeWidth={1.5} />}
+              {i === 1 && <BarChart3 className="w-3.5 h-3.5" style={{ color: tab.active ? '#0d9488' : '#9ca3af' }} strokeWidth={1.5} />}
+              {i === 2 && <FileText className="w-3.5 h-3.5" style={{ color: tab.active ? '#0d9488' : '#9ca3af' }} strokeWidth={1.5} />}
+              {i === 3 && <Clock className="w-3.5 h-3.5" style={{ color: tab.active ? '#0d9488' : '#9ca3af' }} strokeWidth={1.5} />}
+            </div>
+            <span
+              className="text-[8px]"
+              style={{ color: tab.active ? '#0d9488' : '#9ca3af', fontWeight: tab.active ? 600 : 400 }}
+            >
+              {tab.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const screens = [
     {
       title: 'Log Meal',
       content: (
-        <div className="p-4 bg-[#f5f5f5] h-full">
+        <div className="px-3 pt-10 pb-20 h-full overflow-hidden" style={{ backgroundColor: '#EBEBEB' }}>
           {/* Header */}
-          <div className="flex items-center justify-between mb-4 pt-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-warm-200 flex items-center justify-center">
-                <UserIcon className="w-5 h-5 text-warm-500" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
+                <UserIcon className="w-4 h-4" style={{ color: '#9ca3af' }} strokeWidth={1.5} />
               </div>
               <div>
-                <p className="text-[10px] text-warm-400">Hello,</p>
-                <p className="text-sm font-bold text-warm-900">User</p>
+                <p className="text-[8px] leading-tight" style={{ color: '#9ca3af' }}>Hello,</p>
+                <p className="text-xs font-bold leading-tight" style={{ color: '#171717' }}>Sarah</p>
               </div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-warm-100 flex items-center justify-center">
-              <Settings className="w-4 h-4 text-warm-500" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
+              <Settings className="w-4 h-4" style={{ color: '#9ca3af' }} strokeWidth={1.5} />
             </div>
           </div>
-          
+
           {/* Log a Meal Card */}
-          <motion.div 
-            className="bg-white rounded-2xl p-4 mb-4 shadow-sm"
+          <motion.div
+            className="rounded-2xl p-3 mb-3"
+            style={{ backgroundColor: '#ffffff' }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-warm-100 flex items-center justify-center">
-                <Camera className="w-6 h-6 text-warm-500" />
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f5f5f5' }}>
+                <Camera className="w-5 h-5" style={{ color: '#737373' }} strokeWidth={1.5} />
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-warm-900">Log a Meal</p>
-                <p className="text-[10px] text-warm-400">Take a photo or choose from gallery</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold" style={{ color: '#171717' }}>Log a Meal</p>
+                <p className="text-[9px] truncate" style={{ color: '#9ca3af' }}>Take a photo or choose from gallery</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-warm-300" />
+              <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: '#d4d4d4' }} />
             </div>
           </motion.div>
-          
+
           {/* Recent Meals */}
-          <p className="text-sm font-bold text-warm-900 mb-3">Recent Meals</p>
-          <motion.div 
-            className="bg-white rounded-2xl p-3 shadow-sm"
+          <p className="text-xs font-bold mb-2" style={{ color: '#171717' }}>Recent Meals</p>
+          <motion.div
+            className="rounded-2xl p-3"
+            style={{ backgroundColor: '#ffffff' }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-                <span className="text-2xl">🍫</span>
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f3e8ff' }}>
+                <span className="text-lg">🍫</span>
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm font-semibold text-warm-900">Chocolate Bar</p>
-                  <p className="text-[10px] text-warm-400">11:41 PM</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs font-bold truncate" style={{ color: '#171717' }}>Purdys Chocolate</p>
+                  <p className="text-[8px] flex-shrink-0" style={{ color: '#9ca3af' }}>11:41 PM</p>
                 </div>
-                <div className="flex gap-1.5">
-                  <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[9px] font-medium rounded-full flex items-center gap-1">
-                    📦 Ultra Processed
+                <div className="flex gap-1 flex-wrap">
+                  <span className="px-1.5 py-0.5 text-[7px] font-semibold rounded-full" style={{ backgroundColor: '#fff1f2', color: '#f43f5e' }}>
+                    Ultra Processed
                   </span>
-                  <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[9px] font-medium rounded-full flex items-center gap-1">
-                    🌙 Late Meal
+                  <span className="px-1.5 py-0.5 text-[7px] font-semibold rounded-full" style={{ backgroundColor: '#fffbeb', color: '#d97706' }}>
+                    Late Meal
                   </span>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-warm-300" />
+              <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: '#d4d4d4' }} />
             </div>
           </motion.div>
-          
-          {/* Bottom Tab Bar */}
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="bg-white rounded-2xl p-2 flex justify-around shadow-lg">
-              {[
-                { icon: '🍎', label: 'Log Meal', active: true },
-                { icon: '📊', label: 'Insights', active: false },
-                { icon: '📄', label: 'Report', active: false },
-                { icon: '🕐', label: 'History', active: false },
-              ].map((tab, i) => (
-                <div key={i} className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl ${tab.active ? 'bg-teal-50' : ''}`}>
-                  <span className="text-base">{tab.icon}</span>
-                  <span className={`text-[8px] font-medium ${tab.active ? 'text-teal-600' : 'text-warm-400'}`}>{tab.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+
+          <TabBar activeTab={0} />
         </div>
       )
     },
     {
       title: 'Insights',
       content: (
-        <div className="p-4 bg-[#f5f5f5] h-full">
-          {/* Time Period Tabs */}
-          <div className="flex items-center gap-2 mb-4 pt-4">
-            <div className="flex bg-warm-200 rounded-xl p-1">
+        <div className="px-3 pt-10 pb-20 h-full overflow-hidden" style={{ backgroundColor: '#EBEBEB' }}>
+          {/* Time Period Tabs - All 5 periods */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex rounded-xl p-0.5" style={{ backgroundColor: '#ffffff' }}>
               {['Week', '1M', '3M', '6M', '1Y'].map((period, i) => (
-                <button 
-                  key={i} 
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${i === 0 ? 'bg-warm-900 text-white' : 'text-warm-500'}`}
+                <motion.div
+                  key={i}
+                  className="px-2 py-1 rounded-lg text-[8px] font-semibold"
+                  style={{
+                    backgroundColor: i === insightsPeriod ? '#171717' : 'transparent',
+                    color: i === insightsPeriod ? '#ffffff' : '#9ca3af'
+                  }}
+                  animate={i === insightsPeriod ? { scale: [1, 1.02, 1] } : {}}
                 >
                   {period}
-                </button>
+                </motion.div>
               ))}
             </div>
-            <div className="flex-1" />
-            <div className="w-8 h-8 rounded-full bg-warm-200 flex items-center justify-center">
-              <Settings className="w-4 h-4 text-warm-500" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
+              <Settings className="w-4 h-4" style={{ color: '#9ca3af' }} strokeWidth={1.5} />
             </div>
           </div>
-          
+
           {/* Summary Card */}
-          <motion.div 
-            className="bg-white rounded-2xl p-4 mb-4 shadow-sm"
+          <motion.div
+            className="rounded-2xl p-3 mb-3"
+            style={{ backgroundColor: '#ffffff' }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex justify-center mb-2">
-              <span className="px-3 py-1 bg-teal-50 text-teal-600 text-[10px] font-medium rounded-full">
-                📅 1/16/2026 - 1/16/2026
-              </span>
+              <motion.span
+                key={currentData.dateRange}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="px-2 py-0.5 text-[8px] font-medium rounded-full"
+                style={{ backgroundColor: '#f0fdfa', color: '#0d9488' }}
+              >
+                {currentData.dateRange}
+              </motion.span>
             </div>
-            <p className="text-center text-3xl font-bold text-warm-900 mb-1">1</p>
-            <p className="text-center text-xs text-warm-500 mb-4">meals logged</p>
-            
-            <div className="flex justify-center gap-6 mb-4">
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentData.meals}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center"
+              >
+                <p className="text-3xl font-bold" style={{ color: '#171717' }}>{currentData.meals}</p>
+                <p className="text-[9px] mb-2" style={{ color: '#9ca3af' }}>meals logged</p>
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="flex justify-center gap-4 mb-2">
               {[
-                { value: '1', label: 'days' },
-                { value: '14', label: 'signals' },
-                { value: '1.0', label: 'meals/day' },
+                { value: currentData.days, label: 'days' },
+                { value: currentData.signals, label: 'signals' },
+                { value: currentData.mealsPerDay, label: 'meals/day' },
               ].map((stat, i) => (
                 <div key={i} className="text-center">
-                  <p className="text-lg font-bold text-warm-900">{stat.value}</p>
-                  <p className="text-[9px] text-warm-400">{stat.label}</p>
+                  <p className="text-sm font-bold" style={{ color: '#171717' }}>{stat.value}</p>
+                  <p className="text-[7px]" style={{ color: '#9ca3af' }}>{stat.label}</p>
                 </div>
               ))}
             </div>
-            
+
             {/* Mini Chart */}
-            <div className="h-8 flex items-end gap-1 px-2">
-              {[20, 40, 60, 80, 60, 40, 30].map((h, i) => (
-                <div 
-                  key={i} 
-                  className="flex-1 bg-gradient-to-t from-teal-400 to-teal-300 rounded-t"
-                  style={{ height: `${h}%` }}
-                />
-              ))}
+            <div className="h-8">
+              <MiniLineChart animate={true} />
             </div>
-            <p className="text-[9px] text-warm-400 mt-1">Last 7 days</p>
+            <p className="text-[7px]" style={{ color: '#9ca3af' }}>{currentData.chartLabel}</p>
           </motion.div>
-          
-          {/* Insight Cards Grid */}
+
+          {/* Insight Cards - 2x2 grid */}
           <div className="grid grid-cols-2 gap-2">
             {[
-              { icon: '🧴', label: 'Plastic Exposure', value: '0', sub: 'bottles (0.0/day)', good: true },
-              { icon: '🔥', label: 'Hot in Plastic', value: '0', sub: 'times (0.0/day)', good: true },
+              { icon: '🧴', label: 'Plastic', value: insightsPeriod === 0 ? '2' : '8', good: true },
+              { icon: '🔥', label: 'Hot Plastic', value: '0', good: true },
+              { icon: '🥩', label: 'Processed', value: insightsPeriod === 0 ? '0' : '1.2', good: true },
+              { icon: '♨️', label: 'Charred', value: '0', good: true },
             ].map((card, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
-                className="bg-white rounded-xl p-3 shadow-sm"
+                className="rounded-xl p-2"
+                style={{ backgroundColor: '#ffffff' }}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.05 }}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-sm">
-                    {card.icon}
-                  </div>
-                  <div className={`w-2 h-2 rounded-full ${card.good ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm">{card.icon}</span>
+                  <div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: card.good ? '#10b981' : '#f43f5e' }}
+                  />
                 </div>
-                <p className="text-[10px] text-warm-500 mb-0.5">{card.label}</p>
-                <p className="text-lg font-bold text-warm-900">{card.value}</p>
-                <p className="text-[9px] text-warm-400">{card.sub}</p>
+                <p className="text-[8px]" style={{ color: '#737373' }}>{card.label}</p>
+                <p className="text-base font-bold" style={{ color: '#171717' }}>{card.value}</p>
               </motion.div>
             ))}
           </div>
+
+          <TabBar activeTab={1} />
         </div>
       )
     },
     {
       title: 'Report',
       content: (
-        <div className="p-4 bg-[#f5f5f5] h-full">
-          <div className="pt-4 mb-4">
-            <p className="text-lg font-bold text-warm-900">Doctor Report</p>
-            <p className="text-[10px] text-warm-400">Generate a report for your healthcare provider</p>
+        <div className="px-3 pt-10 pb-20 h-full overflow-hidden" style={{ backgroundColor: '#EBEBEB' }}>
+          <div className="mb-3">
+            <p className="text-sm font-bold" style={{ color: '#171717' }}>Doctor Report</p>
+            <p className="text-[9px]" style={{ color: '#9ca3af' }}>Generate a report for your provider</p>
           </div>
-          
+
           {/* Generate Report Card */}
-          <motion.div 
-            className="bg-white rounded-2xl p-4 mb-3 shadow-sm"
+          <motion.div
+            className="rounded-2xl p-3 mb-2"
+            style={{ backgroundColor: '#ffffff' }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-xl bg-warm-100 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-warm-500" />
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f5f5f5' }}>
+                <FileText className="w-5 h-5" style={{ color: '#737373' }} strokeWidth={1.5} />
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-warm-900">Generate Report</p>
-                <p className="text-[10px] text-warm-400">Analyze last 30 days</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold" style={{ color: '#171717' }}>Generate Report</p>
+                <p className="text-[9px]" style={{ color: '#9ca3af' }}>Analyze last 30 days</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-warm-300" />
+              <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: '#d4d4d4' }} />
             </div>
-            <div className="flex gap-2">
-              <span className="px-2 py-1 bg-warm-100 text-warm-600 text-[9px] font-medium rounded-full flex items-center gap-1">
+            <div className="flex gap-1.5">
+              <span className="px-1.5 py-0.5 text-[7px] font-semibold rounded-full" style={{ backgroundColor: '#f5f5f5', color: '#525252' }}>
                 ⚡ AI Powered
               </span>
-              <span className="px-2 py-1 bg-warm-100 text-warm-600 text-[9px] font-medium rounded-full flex items-center gap-1">
+              <span className="px-1.5 py-0.5 text-[7px] font-semibold rounded-full" style={{ backgroundColor: '#f5f5f5', color: '#525252' }}>
                 🩺 Doctor Ready
               </span>
             </div>
           </motion.div>
-          
+
           {/* Blood Work Card */}
-          <motion.div 
-            className="bg-white rounded-2xl p-4 mb-4 shadow-sm"
+          <motion.div
+            className="rounded-2xl p-3 mb-3"
+            style={{ backgroundColor: '#ffffff' }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center">
-                <span className="text-lg">🔬</span>
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f5f5f5' }}>
+                <span className="text-base">🔬</span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-warm-900">Blood Work</p>
-                <p className="text-[10px] text-warm-400">Add test results</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold" style={{ color: '#171717' }}>Blood Work</p>
+                <p className="text-[9px]" style={{ color: '#9ca3af' }}>Add test results</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-warm-300" />
+              <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: '#d4d4d4' }} />
             </div>
           </motion.div>
-          
-          {/* Time Period Selection */}
-          <p className="text-sm font-bold text-warm-900 mb-3">Select Time Period</p>
-          <div className="grid grid-cols-2 gap-2">
+
+          {/* Time Period Grid */}
+          <p className="text-xs font-bold mb-2" style={{ color: '#171717' }}>Time Period</p>
+          <div className="grid grid-cols-2 gap-1.5">
             {[
-              { label: '1 Month', sub: 'Last 30 days', selected: true },
-              { label: '3 Months', sub: 'Last 90 days', selected: false },
-              { label: '6 Months', sub: 'Last 180 days', selected: false },
-              { label: '1 Year', sub: 'Last 365 days', selected: false },
+              { label: '1 Month', selected: true },
+              { label: '3 Months', selected: false },
+              { label: '6 Months', selected: false },
+              { label: '1 Year', selected: false },
             ].map((period, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
-                className={`p-3 rounded-xl border-2 ${period.selected ? 'border-teal-400 bg-teal-50' : 'border-warm-200 bg-white'}`}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                className="p-2 rounded-xl"
+                style={{
+                  border: period.selected ? '1px solid #2dd4bf' : '1px solid #e5e5e5',
+                  backgroundColor: period.selected ? '#f0fdfa' : '#ffffff'
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: i * 0.05 }}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-lg">📅</span>
-                  {period.selected && <Check className="w-4 h-4 text-teal-600" />}
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold" style={{ color: '#171717' }}>{period.label}</p>
+                  {period.selected && <Check className="w-3 h-3" style={{ color: '#14b8a6' }} />}
                 </div>
-                <p className="text-xs font-semibold text-warm-900">{period.label}</p>
-                <p className="text-[9px] text-warm-400">{period.sub}</p>
               </motion.div>
             ))}
           </div>
+
+          <TabBar activeTab={2} />
         </div>
       )
     }
@@ -428,16 +562,22 @@ function InteractivePhone({ activeScreen, setActiveScreen }: { activeScreen: num
 
   return (
     <div className="relative group/phone">
-      {/* Phone frame */}
-      <div className="relative w-[280px] lg:w-[260px] h-[580px] lg:h-[540px] bg-warm-900 rounded-[50px] p-3 shadow-2xl shadow-warm-900/30 opacity-95 group-hover/phone:opacity-100 transition-opacity duration-300">
+      {/* Phone frame - iPhone style - uses explicit colors to avoid dark mode inheritance */}
+      <div
+        className="relative w-[240px] h-[500px] rounded-[40px] p-2.5 shadow-2xl"
+        style={{ backgroundColor: '#171717', boxShadow: '0 25px 50px -12px rgba(23, 23, 23, 0.4)' }}
+      >
         {/* Dynamic Island */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-8 bg-warm-900 rounded-full z-20 flex items-center justify-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-warm-700" />
-          <div className="w-3 h-3 rounded-full bg-warm-700" />
+        <div
+          className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-6 rounded-full z-20 flex items-center justify-center gap-2"
+          style={{ backgroundColor: '#000000' }}
+        >
+          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#404040' }} />
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#404040' }} />
         </div>
-        
+
         {/* Screen */}
-        <div className="w-full h-full bg-[#fafaf9] rounded-[38px] overflow-hidden relative">
+        <div className="w-full h-full rounded-[32px] overflow-hidden relative" style={{ backgroundColor: '#EBEBEB' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeScreen}
@@ -451,21 +591,24 @@ function InteractivePhone({ activeScreen, setActiveScreen }: { activeScreen: num
             </motion.div>
           </AnimatePresence>
         </div>
-        
+
         {/* Home indicator */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-warm-700 rounded-full" />
+        <div
+          className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-24 h-1 rounded-full"
+          style={{ backgroundColor: '#525252' }}
+        />
       </div>
-      
-      {/* Screen selector */}
-      <div className="flex justify-center gap-2 mt-6">
+
+      {/* Screen selector pills */}
+      <div className="flex justify-center gap-2 mt-5">
         {screens.map((screen, i) => (
           <motion.button
             key={i}
             onClick={() => setActiveScreen(i)}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-              activeScreen === i 
-                ? 'bg-teal-600 text-white' 
-                : 'bg-warm-100 text-warm-600 hover:bg-warm-200'
+            className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+              activeScreen === i
+                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
+                : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-400'
             }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -548,12 +691,11 @@ export default function LandingPage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <motion.div
-                  className="w-10 h-10 bg-gradient-to-br from-sage-500 to-sage-700 rounded-xl flex items-center justify-center shadow-lg shadow-sage-500/25"
-                  whileHover={{ rotate: 10, scale: 1.05 }}
-                >
-                  <span className="text-white font-bold text-lg">DB</span>
-                </motion.div>
+                <img
+                  src="/icon-192.png"
+                  alt="DataDiet"
+                  className="w-12 h-12 rounded-xl"
+                />
                 <span className="font-semibold text-warm-900 dark:text-neutral-100 text-lg hidden sm:block">DataDiet</span>
               </motion.div>
               
@@ -645,10 +787,10 @@ export default function LandingPage() {
               >
                 <MagneticWrapper>
                   <Link
-                    href="/login"
+                    href={user ? "/app" : "/login"}
                     className="group px-8 py-4 bg-sage-600 text-white rounded-2xl font-medium text-lg shadow-xl shadow-sage-600/25 hover:bg-sage-700 transition-all flex items-center gap-3"
                   >
-                    Get started free
+                    {user ? "Open Dashboard" : "Get started free"}
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </MagneticWrapper>
@@ -945,9 +1087,11 @@ export default function LandingPage() {
                   {/* Header */}
                   <div className="flex items-center justify-between mb-6 pb-6 border-b border-warm-100 dark:border-neutral-800">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-sage-500 to-sage-700 rounded-xl flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">DB</span>
-                      </div>
+                      <img
+                        src="/icon-192.png"
+                        alt="DataDiet"
+                        className="w-10 h-10 rounded-xl"
+                      />
                       <div>
                         <p className="font-semibold text-warm-900 dark:text-neutral-100">Dietary Report</p>
                         <p className="text-xs text-warm-500 dark:text-neutral-500">Generated for Dr. Smith</p>
@@ -1058,11 +1202,11 @@ export default function LandingPage() {
                 </div>
 
                 <Link
-                  href="/login"
+                  href={user ? "/app" : "/login"}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-warm-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-xl font-medium hover:bg-warm-800 dark:hover:bg-neutral-200 transition-colors"
                 >
                   <FileText className="w-4 h-4" />
-                  Try it free
+                  {user ? "Open Dashboard" : "Try it free"}
                 </Link>
               </div>
             </RevealOnScroll>
@@ -1174,15 +1318,15 @@ export default function LandingPage() {
 
                 <MagneticWrapper className="inline-block">
                   <Link
-                    href="/login"
+                    href={user ? "/app" : "/login"}
                     className="group inline-flex items-center gap-3 px-10 py-5 bg-sage-600 text-white rounded-2xl font-semibold text-lg shadow-xl shadow-sage-600/25 hover:bg-sage-700 transition-all"
                   >
-                    Get started — it&apos;s free
+                    {user ? "Open Dashboard" : "Get started — it's free"}
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </MagneticWrapper>
 
-                <p className="text-warm-500 dark:text-neutral-500 text-sm mt-6">No credit card required</p>
+                {!user && <p className="text-warm-500 dark:text-neutral-500 text-sm mt-6">No credit card required</p>}
               </div>
             </motion.div>
           </RevealOnScroll>
@@ -1194,9 +1338,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-sage-500 to-sage-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">DB</span>
-              </div>
+              <img
+                src="/icon-192.png"
+                alt="DataDiet"
+                className="w-8 h-8 rounded-lg"
+              />
               <span className="text-warm-600 dark:text-neutral-400">DataDiet</span>
             </div>
 

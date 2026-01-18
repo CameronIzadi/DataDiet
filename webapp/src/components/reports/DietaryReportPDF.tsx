@@ -5,6 +5,7 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from '@react-pdf/renderer';
 import { Insights, BloodWork } from '@/types';
 
@@ -49,18 +50,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  logoBox: {
+  logoImage: {
     width: 40,
     height: 40,
-    backgroundColor: colors.accent,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   brandName: {
     fontSize: 20,
@@ -330,6 +323,7 @@ interface ReportData {
   generatedAt: Date;
   periodLabel: string;
   mealsAnalyzed: number;
+  baseUrl?: string;
 }
 
 const getStatusStyle = (concernLevel: string) => {
@@ -349,7 +343,9 @@ export const DietaryReportPDF: React.FC<ReportData> = ({
   generatedAt,
   periodLabel,
   mealsAnalyzed,
+  baseUrl = '',
 }) => {
+  const logoUrl = baseUrl ? `${baseUrl}/icon-192.png` : '/icon-192.png';
   const dateStr = generatedAt.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -368,9 +364,7 @@ export const DietaryReportPDF: React.FC<ReportData> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logo}>
-            <View style={styles.logoBox}>
-              <Text style={styles.logoText}>DD</Text>
-            </View>
+            <Image style={styles.logoImage} src={logoUrl} />
             <View>
               <Text style={styles.brandName}>DataDiet</Text>
               <Text style={styles.brandTagline}>AI-Powered Dietary Intelligence</Text>
