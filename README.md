@@ -1,5 +1,7 @@
 # DataDiet
 
+![DataDiet Hero](hero.png)
+
 **Your dietary black box for when health signals change.**
 
 Capture meals effortlessly. Surface medically-relevant patterns. Generate doctor-ready reports in seconds.
