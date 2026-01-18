@@ -36,8 +36,6 @@ interface Props {
 export default function CaptureScreen({ navigation }: Props) {
   const { colors, themeProgress } = useTheme();
   const { user } = useAuth();
-  const [image, setImage] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
   const [success, setSuccess] = useState(false);
 
   // Animated background
@@ -68,7 +66,6 @@ export default function CaptureScreen({ navigation }: Props) {
     });
 
     if (!result.canceled && result.assets[0].base64) {
-      setImage(result.assets[0].uri);
       await processImage(result.assets[0].base64);
     }
   };
@@ -87,47 +84,35 @@ export default function CaptureScreen({ navigation }: Props) {
     });
 
     if (!result.canceled && result.assets[0].base64) {
-      setImage(result.assets[0].uri);
       await processImage(result.assets[0].base64);
     }
   };
 
   const processImage = async (base64: string) => {
-    setAnalyzing(true);
     const userId = user?.uid || 'demo_user';
 
-    try {
-      // Step 1: Save pending meal immediately (fast - just image upload)
-      const mealId = await savePendingMeal(userId, base64);
+    // Show success immediately - no waiting
+    setSuccess(true);
+    haptics.success();
 
-      // Step 2: Show success immediately - user sees instant feedback
-      setSuccess(true);
-      haptics.success();
+    successOpacity.value = withTiming(1, { duration: 300 });
+    successScale.value = withSequence(
+      withSpring(1.2, { damping: 10, stiffness: 200 }),
+      withSpring(1, { damping: 15, stiffness: 150 })
+    );
 
-      successOpacity.value = withTiming(1, { duration: 300 });
-      successScale.value = withSequence(
-        withSpring(1.2, { damping: 10, stiffness: 200 }),
-        withSpring(1, { damping: 15, stiffness: 150 })
-      );
-
-      // Step 3: Navigate back after brief success animation
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1500);
-
-      // Step 4: Fire off analysis in background (don't await - fire and forget)
-      analyzeAndUpdateMeal(userId, mealId, base64);
-    } catch (error) {
-      console.error('Error saving meal:', error);
-      haptics.error();
-      Alert.alert('Error', 'Failed to save meal. Please try again.');
-      setAnalyzing(false);
-    }
+    // Fire off save + analysis in background (don't await)
+    saveAndAnalyzeMeal(userId, base64);
   };
 
-  // Background analysis function - runs async after user sees success
-  const analyzeAndUpdateMeal = async (userId: string, mealId: string, base64: string) => {
+  // Background function - runs async after user sees success
+  const saveAndAnalyzeMeal = async (userId: string, base64: string) => {
+    let mealId: string | null = null;
     try {
+      mealId = await savePendingMeal(userId, base64);
+      console.log('Meal saved with ID:', mealId);
+
+      // Now analyze
       const analysis = await analyzeFood(base64);
 
       // Add late_meal flag if needed
@@ -136,7 +121,6 @@ export default function CaptureScreen({ navigation }: Props) {
         analysis.flags.push('late_meal');
       }
 
-      // Update the meal with analysis results
       await updateMealWithAnalysis(
         userId,
         mealId,
@@ -146,12 +130,15 @@ export default function CaptureScreen({ navigation }: Props) {
       );
 
       console.log('Meal analysis complete:', mealId);
-    } catch (error) {
-      console.error('Error analyzing meal:', error);
-      // Mark meal as failed so user knows to retry
-      await markMealFailed(userId, mealId, 'Analysis failed');
+    } catch (error: any) {
+      console.error('Error in background save/analysis:', error);
+      // Mark meal as failed if we have a mealId
+      if (mealId) {
+        await markMealFailed(userId, mealId, error?.message || 'Unknown error');
+      }
     }
   };
+
 
   const successAnimStyle = useAnimatedStyle(() => ({
     transform: [{ scale: successScale.value }],
@@ -174,6 +161,11 @@ export default function CaptureScreen({ navigation }: Props) {
     ),
   }));
 
+  const handleDismiss = () => {
+    haptics.light();
+    navigation.goBack();
+  };
+
   if (success) {
     return (
       <Animated.View style={[styles.container, animatedBackground]}>
@@ -189,11 +181,17 @@ export default function CaptureScreen({ navigation }: Props) {
               <Icon name="check" size={48} color={colors.success} />
             </Animated.View>
             <Animated.Text style={[styles.successText, successTextStyle]}>
-              Meal Logged
+              Congrats!
             </Animated.Text>
             <Animated.Text style={[styles.successSubtext, successSubtextStyle]}>
-              Data captured. Forget about it.
+              See you next meal!
             </Animated.Text>
+            <AnimatedPressable
+              onPress={handleDismiss}
+              style={[styles.okButton, { backgroundColor: colors.success }]}
+            >
+              <Text style={styles.okButtonText}>OK</Text>
+            </AnimatedPressable>
           </View>
         </SafeAreaView>
       </Animated.View>
@@ -205,36 +203,32 @@ export default function CaptureScreen({ navigation }: Props) {
       <SafeAreaView style={styles.safe}>
         <ScreenHeader title="Log Meal" onBack={() => navigation.goBack()} />
 
-        {analyzing ? (
-          <AnalyzingState image={image} themeProgress={themeProgress} colors={colors} />
-        ) : (
-          <Animated.View style={[styles.optionsContainer, contentStyle]}>
-            <AnimatedInstruction themeProgress={themeProgress} />
-            <AnimatedSubInstruction themeProgress={themeProgress} />
+        <Animated.View style={[styles.optionsContainer, contentStyle]}>
+          <AnimatedInstruction themeProgress={themeProgress} />
+          <AnimatedSubInstruction themeProgress={themeProgress} />
 
-            <View style={styles.options}>
-              <OptionCard
-                icon="camera"
-                title="Take Photo"
-                description="Use your camera"
-                onPress={takePhoto}
-                themeProgress={themeProgress}
-                colors={colors}
-                delay={200}
-              />
+          <View style={styles.options}>
+            <OptionCard
+              icon="camera"
+              title="Take Photo"
+              description="Use your camera"
+              onPress={takePhoto}
+              themeProgress={themeProgress}
+              colors={colors}
+              delay={200}
+            />
 
-              <OptionCard
-                icon="image-multiple"
-                title="Choose from Gallery"
-                description="Select an existing photo"
-                onPress={pickImage}
-                themeProgress={themeProgress}
-                colors={colors}
-                delay={300}
-              />
-            </View>
-          </Animated.View>
-        )}
+            <OptionCard
+              icon="image-multiple"
+              title="Choose from Gallery"
+              description="Select an existing photo"
+              onPress={pickImage}
+              themeProgress={themeProgress}
+              colors={colors}
+              delay={300}
+            />
+          </View>
+        </Animated.View>
       </SafeAreaView>
     </Animated.View>
   );
@@ -269,74 +263,6 @@ function AnimatedSubInstruction({ themeProgress }: { themeProgress: Animated.Sha
     <Animated.Text style={[styles.subInstruction, animatedStyle]}>
       We'll remember so you don't have to
     </Animated.Text>
-  );
-}
-
-interface AnalyzingStateProps {
-  image: string | null;
-  themeProgress: Animated.SharedValue<number>;
-  colors: any;
-}
-
-function AnalyzingState({ image, themeProgress, colors }: AnalyzingStateProps) {
-  const pulseOpacity = useSharedValue(0.4);
-  const imageScale = useSharedValue(0.9);
-  const imageOpacity = useSharedValue(0);
-
-  useEffect(() => {
-    // Pulse animation for loading indicator
-    pulseOpacity.value = withTiming(1, { duration: 800 }, () => {
-      pulseOpacity.value = withTiming(0.4, { duration: 800 });
-    });
-
-    // Image entrance
-    imageOpacity.value = withTiming(1, { duration: 300 });
-    imageScale.value = withSpring(1, { damping: 15, stiffness: 100 });
-  }, []);
-
-  const imageStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: imageScale.value }],
-    opacity: imageOpacity.value,
-  }));
-
-  const pulseStyle = useAnimatedStyle(() => ({
-    opacity: pulseOpacity.value,
-  }));
-
-  const textStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(
-      themeProgress.value,
-      [0, 1],
-      [LIGHT.textMuted, DARK.textMuted]
-    ),
-  }));
-
-  const subtextStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(
-      themeProgress.value,
-      [0, 1],
-      [LIGHT.textFaint, DARK.textFaint]
-    ),
-  }));
-
-  return (
-    <View style={styles.analyzingContainer}>
-      {image && (
-        <Animated.Image
-          source={{ uri: image }}
-          style={[styles.previewImage, imageStyle]}
-        />
-      )}
-      <Animated.View style={[styles.loaderContainer, pulseStyle]}>
-        <Icon name="brain" size={32} color={colors.primary} />
-      </Animated.View>
-      <Animated.Text style={[styles.analyzingText, textStyle]}>
-        Analyzing your meal...
-      </Animated.Text>
-      <Animated.Text style={[styles.analyzingSubtext, subtextStyle]}>
-        Identifying foods and nutritional signals
-      </Animated.Text>
-    </View>
   );
 }
 
@@ -474,36 +400,6 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.bodySmall,
     marginTop: 2,
   },
-  analyzingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xxl,
-  },
-  previewImage: {
-    width: 200,
-    height: 200,
-    borderRadius: RADIUS.xl,
-    marginBottom: SPACING.xl,
-  },
-  loaderContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(19, 200, 236, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.lg,
-  },
-  analyzingText: {
-    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
-    fontSize: TYPOGRAPHY.sizes.bodyLarge,
-    marginBottom: SPACING.xs,
-  },
-  analyzingSubtext: {
-    fontFamily: TYPOGRAPHY.fontFamily.regular,
-    fontSize: TYPOGRAPHY.sizes.bodyMedium,
-  },
   successContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -525,5 +421,16 @@ const styles = StyleSheet.create({
   successSubtext: {
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     fontSize: TYPOGRAPHY.sizes.bodyLarge,
+  },
+  okButton: {
+    marginTop: SPACING.xxxl,
+    paddingHorizontal: SPACING.xxxxl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.xl,
+  },
+  okButtonText: {
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.sizes.bodyLarge,
+    color: '#fff',
   },
 });

@@ -2,6 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 
+console.log('Gemini API Key loaded:', API_KEY ? `${API_KEY.substring(0, 8)}...` : 'MISSING');
+
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
@@ -65,11 +67,23 @@ Only include flags that clearly apply. Return valid JSON only.`;
     ]);
 
     const text = result.response.text();
+    console.log('Gemini raw response:', text.substring(0, 500));
     // Clean up any markdown formatting
     const cleanJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(cleanJson);
-  } catch (error) {
+    try {
+      return JSON.parse(cleanJson);
+    } catch (parseError) {
+      console.error('JSON parse error. Raw text:', cleanJson.substring(0, 500));
+      throw new Error(`Failed to parse Gemini response as JSON: ${cleanJson.substring(0, 200)}`);
+    }
+  } catch (error: any) {
     console.error('Error analyzing food:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      status: error?.status,
+      statusText: error?.statusText,
+      response: error?.response?.data || error?.response,
+    });
     throw error;
   }
 }

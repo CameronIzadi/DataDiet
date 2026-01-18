@@ -66,6 +66,8 @@ import {
   Brain,
   Stethoscope,
   Percent,
+  Images,
+  Image,
   type LucideIcon,
 } from 'lucide-react-native';
 
@@ -132,6 +134,7 @@ const iconMap: Record<string, LucideIcon> = {
   'check': Check,
   'check-circle': CheckCircle,
   'alert-circle': AlertCircle,
+  'alert-circle-outline': AlertCircle,
   'brain': Brain,
   'doctor': Stethoscope,
   'stethoscope': Stethoscope,
@@ -196,6 +199,12 @@ const iconMap: Record<string, LucideIcon> = {
 
   // Onboarding
   'meditation': Brain,
+
+  // Gallery/Images
+  'image': Image,
+  'image-multiple': Images,
+  'images': Images,
+  'gallery': Images,
 };
 
 interface IconProps {
@@ -288,4 +297,6 @@ export {
   Stethoscope,
   Percent,
   HeartPulse,
+  Images,
+  Image,
 };

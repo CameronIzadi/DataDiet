@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -13,6 +13,7 @@ import {
   Easing,
   Platform,
   PanResponder,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -21,11 +22,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
   FadeIn,
 } from 'react-native-reanimated';
 import Icon from '../components/Icon';
-import { useFocusEffect } from '@react-navigation/native';
-import { getMeals } from '../services/meals';
+import { getMeals, deleteMeal, subscribeMeals, retryPendingMeals } from '../services/meals';
 import { Meal } from '../types';
 import { useTheme, useAnimatedBackground } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -130,11 +131,21 @@ export default function LogMealScreen({ navigation }: Props) {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      loadMeals();
-    }, [user?.uid])
-  );
+  // Real-time subscription to meal updates
+  useEffect(() => {
+    const userId = user?.uid || 'demo_user';
+    setLoading(true);
+
+    // Retry any pending meals that were interrupted
+    retryPendingMeals(userId);
+
+    const unsubscribe = subscribeMeals(userId, 10, (updatedMeals) => {
+      setMeals(updatedMeals);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -145,6 +156,33 @@ export default function LogMealScreen({ navigation }: Props) {
   const handleCapture = () => {
     haptics.light();
     navigation.navigate('Capture');
+  };
+
+  const handleDeleteMeal = (meal: Meal) => {
+    Alert.alert(
+      'Delete Meal',
+      'Are you sure you want to delete this meal? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const userId = user?.uid || 'demo_user';
+              await deleteMeal(userId, meal.id);
+              haptics.light();
+              closeMealModal();
+              // Refresh meals list
+              loadMeals();
+            } catch (error) {
+              console.error('Error deleting meal:', error);
+              Alert.alert('Error', 'Failed to delete meal. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const firstName =
@@ -227,6 +265,7 @@ export default function LogMealScreen({ navigation }: Props) {
           visible={isModalVisible}
           meal={selectedMeal}
           onClose={closeMealModal}
+          onDelete={handleDeleteMeal}
           sheetHeight={sheetHeight}
           sheetTranslateY={sheetTranslateY}
           backdropOpacity={backdropOpacity}
@@ -350,9 +389,31 @@ interface MealCardProps {
 
 function MealCard({ meal, isDark, colors, delay, onPress }: MealCardProps) {
   const scale = useSharedValue(1);
+  const progressWidth = useSharedValue(0);
   const cardGradient = isDark ? GRADIENTS.dark.card : GRADIENTS.light.card;
   const isPending = meal.status === 'pending';
   const isFailed = meal.status === 'failed';
+
+  // Animated progress bar for pending meals
+  React.useEffect(() => {
+    if (isPending) {
+      // Animate progress bar in a loop
+      const animate = () => {
+        progressWidth.value = 0;
+        progressWidth.value = withTiming(1, { duration: 2000 }, () => {
+          // Reset and repeat
+          progressWidth.value = 0;
+        });
+      };
+      animate();
+      const interval = setInterval(animate, 2200);
+      return () => clearInterval(interval);
+    }
+  }, [isPending]);
+
+  const progressStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value * 100}%`,
+  }));
 
   const handlePressIn = () => {
     scale.value = withSpring(0.98, { damping: 15, stiffness: 400 });
@@ -382,16 +443,20 @@ function MealCard({ meal, isDark, colors, delay, onPress }: MealCardProps) {
   const getFlagInfo = (flag: string) => {
     switch (flag) {
       case 'plastic': return { emoji: '🧴', label: 'Plastic' };
+      case 'plastic_bottle': return { emoji: '🧴', label: 'Plastic' };
+      case 'plastic_container_hot': return { emoji: '🧴', label: 'Hot Plastic' };
       case 'processed_meat': return { emoji: '🥓', label: 'Processed Meat' };
       case 'late_meal': return { emoji: '🌙', label: 'Late Meal' };
       case 'high_sodium': return { emoji: '🧂', label: 'High Sodium' };
       case 'fried': return { emoji: '🍳', label: 'Fried' };
-      case 'ultra_processed': return { emoji: '📦', label: 'Ultra Processed' };
+      case 'ultra_processed': return { emoji: '📦', label: 'Processed' };
       case 'caffeine': return { emoji: '☕', label: 'Caffeine' };
       case 'alcohol': return { emoji: '🍷', label: 'Alcohol' };
-      case 'high_sugar_beverage': return { emoji: '🥤', label: 'Sugary Drink' };
-      case 'refined_grain': return { emoji: '🍞', label: 'Refined Grain' };
+      case 'high_sugar_beverage': return { emoji: '🥤', label: 'Sugary' };
+      case 'refined_grain': return { emoji: '🍞', label: 'Refined' };
       case 'charred_grilled': return { emoji: '🔥', label: 'Charred' };
+      case 'acidic_trigger': return { emoji: '🍋', label: 'Acidic' };
+      case 'spicy_irritant': return { emoji: '🌶️', label: 'Spicy' };
       default: return { emoji: '⚠️', label: flag.replace(/_/g, ' ') };
     }
   };
@@ -459,32 +524,48 @@ function MealCard({ meal, isDark, colors, delay, onPress }: MealCardProps) {
           </View>
 
           {/* Flags row - the main content (dietary signals) */}
-          {hasFlags ? (
+          {isPending ? (
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' }]}>
+                <Animated.View
+                  style={[
+                    styles.progressBar,
+                    { backgroundColor: colors.primary },
+                    progressStyle
+                  ]}
+                />
+              </View>
+              <ThemedText variant="labelSmall" color="muted" style={{ marginTop: SPACING.xs }}>
+                Identifying foods & signals...
+              </ThemedText>
+            </View>
+          ) : hasFlags ? (
             <View style={styles.flagsRow}>
-              {meal.flags.slice(0, 3).map((flag, i) => {
-                const flagInfo = getFlagInfo(flag);
-                return (
-                  <View
-                    key={i}
-                    style={[
-                      styles.flagPill,
-                      { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)' }
-                    ]}
-                  >
-                    <ThemedText style={styles.flagEmoji}>{flagInfo.emoji}</ThemedText>
-                    <ThemedText variant="labelSmall" style={{ color: isDark ? '#FCA5A5' : '#DC2626' }}>
-                      {flagInfo.label}
-                    </ThemedText>
-                  </View>
-                );
-              })}
-              {meal.flags.length > 3 && (
-                <ThemedText variant="labelSmall" color="soft" style={{ marginLeft: SPACING.xs }}>
-                  +{meal.flags.length - 3}
+              <View
+                style={[
+                  styles.flagPill,
+                  { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)' }
+                ]}
+              >
+                <ThemedText style={styles.flagEmoji}>{getFlagInfo(meal.flags[0]).emoji}</ThemedText>
+                <ThemedText variant="labelSmall" style={{ color: isDark ? '#FCA5A5' : '#DC2626' }}>
+                  {getFlagInfo(meal.flags[0]).label}
                 </ThemedText>
+              </View>
+              {meal.flags.length > 1 && (
+                <View
+                  style={[
+                    styles.flagPill,
+                    { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)' }
+                  ]}
+                >
+                  <ThemedText variant="labelSmall" style={{ color: isDark ? '#FCA5A5' : '#DC2626' }}>
+                    +{meal.flags.length - 1}
+                  </ThemedText>
+                </View>
               )}
             </View>
-          ) : !isPending && (
+          ) : (
             <View style={styles.flagsRow}>
               <View style={[styles.flagPill, { backgroundColor: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)' }]}>
                 <ThemedText style={styles.flagEmoji}>✓</ThemedText>
@@ -530,6 +611,7 @@ interface MealDetailModalProps {
   visible: boolean;
   meal: Meal | null;
   onClose: () => void;
+  onDelete: (meal: Meal) => void;
   sheetHeight: number;
   sheetTranslateY: RNAnimated.Value;
   backdropOpacity: RNAnimated.Value;
@@ -541,6 +623,7 @@ function MealDetailModal({
   visible,
   meal,
   onClose,
+  onDelete,
   sheetHeight,
   sheetTranslateY,
   backdropOpacity,
@@ -580,8 +663,13 @@ function MealDetailModal({
 
   if (!meal) return null;
 
+  const isPending = meal.status === 'pending';
+  const isFailed = meal.status === 'failed';
+
   // Get primary food name
-  const primaryFood = meal.foods.length > 0 ? meal.foods[0].name : 'Meal';
+  const primaryFood = meal.foods.length > 0
+    ? meal.foods[0].name
+    : isPending ? 'Analyzing...' : isFailed ? 'Analysis Failed' : 'Meal';
   const foodCount = meal.foods.length;
   const displayName = foodCount > 1 ? `${primaryFood} +${foodCount - 1}` : primaryFood;
 
@@ -685,10 +773,39 @@ function MealDetailModal({
             {/* DIETARY SIGNALS - Primary Focus */}
             <View style={styles.modalSignalsSection}>
               <ThemedText variant="headlineSmall" color="primary" style={styles.modalSectionTitle}>
-                Dietary Signals
+                {isPending ? 'Analyzing...' : isFailed ? 'Analysis Status' : 'Dietary Signals'}
               </ThemedText>
 
-              {hasFlags ? (
+              {isPending ? (
+                <View style={[styles.modalAnalyzingCard, { backgroundColor: isDark ? 'rgba(19,200,236,0.1)' : 'rgba(19,200,236,0.08)' }]}>
+                  <View style={styles.modalAnalyzingContent}>
+                    <Icon name="brain" size={40} color={colors.primary} />
+                    <View style={{ marginLeft: SPACING.md, flex: 1 }}>
+                      <ThemedText variant="bodyLarge" style={{ color: colors.primary, fontFamily: TYPOGRAPHY.fontFamily.semiBold }}>
+                        AI is analyzing your meal
+                      </ThemedText>
+                      <ThemedText variant="bodySmall" color="muted" style={{ marginTop: SPACING.xs }}>
+                        Identifying foods, portions, and dietary signals...
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <View style={[styles.modalAnalyzingProgress, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' }]}>
+                    <View style={[styles.modalAnalyzingProgressBar, { backgroundColor: colors.primary }]} />
+                  </View>
+                </View>
+              ) : isFailed ? (
+                <View style={[styles.modalFailedCard, { backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.08)' }]}>
+                  <Icon name="alert-circle-outline" size={40} color={colors.error} />
+                  <View style={{ marginLeft: SPACING.md, flex: 1 }}>
+                    <ThemedText variant="bodyLarge" style={{ color: colors.error, fontFamily: TYPOGRAPHY.fontFamily.semiBold }}>
+                      Analysis failed
+                    </ThemedText>
+                    <ThemedText variant="bodySmall" color="muted" style={{ marginTop: SPACING.xs }}>
+                      {meal.errorMessage || 'Unable to analyze this meal. Try taking another photo.'}
+                    </ThemedText>
+                  </View>
+                </View>
+              ) : hasFlags ? (
                 <View style={styles.modalSignalsContainer}>
                   {meal.flags.map((flag, i) => {
                     const flagInfo = getFlagInfo(flag);
@@ -730,8 +847,8 @@ function MealDetailModal({
               )}
             </View>
 
-            {/* Foods Detected */}
-            {meal.foods.length > 0 && (
+            {/* Foods Detected - only show when not pending */}
+            {!isPending && meal.foods.length > 0 && (
               <View style={styles.modalFoodsSection}>
                 <ThemedText variant="bodyLarge" color="primary" style={styles.modalSectionTitle}>
                   Foods Detected
@@ -752,6 +869,20 @@ function MealDetailModal({
                 </View>
               </View>
             )}
+
+            {/* Delete Button */}
+            <Pressable
+              onPress={() => onDelete(meal)}
+              style={[
+                styles.deleteButton,
+                { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)' }
+              ]}
+            >
+              <Icon name="trash" size={20} color={colors.error} />
+              <ThemedText variant="bodyMedium" style={{ color: colors.error, marginLeft: SPACING.sm }}>
+                Delete Meal
+              </ThemedText>
+            </Pressable>
           </ScrollView>
         </RNAnimated.View>
       </View>
@@ -918,6 +1049,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
+    overflow: 'hidden',
   },
   flagPill: {
     flexDirection: 'row',
@@ -926,9 +1058,22 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.md,
     gap: SPACING.xs,
+    flexShrink: 0,
   },
   flagEmoji: {
     fontSize: 14,
+  },
+  progressContainer: {
+    flex: 1,
+  },
+  progressTrack: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 2,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -1037,5 +1182,39 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: SPACING.xs,
+  },
+  modalAnalyzingCard: {
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+  },
+  modalAnalyzingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  modalAnalyzingProgress: {
+    height: 4,
+    borderRadius: 2,
+    marginTop: SPACING.lg,
+    overflow: 'hidden',
+  },
+  modalAnalyzingProgressBar: {
+    height: '100%',
+    width: '60%',
+    borderRadius: 2,
+    opacity: 0.6,
+  },
+  modalFailedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    marginTop: SPACING.xl,
   },
 });
