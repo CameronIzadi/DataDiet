@@ -56,7 +56,7 @@ export function Navigation() {
                   <div className="w-9 h-9 bg-gradient-to-br from-sage-500 to-sage-700 rounded-xl flex items-center justify-center shadow-sm">
                     <span className="text-white font-bold text-sm">DB</span>
                   </div>
-                  <span className="font-semibold text-warm-900 dark:text-neutral-100">Dietary Black Box</span>
+                  <span className="font-semibold text-warm-900 dark:text-neutral-100">DataDiet</span>
                 </Link>
               </div>
               

@@ -1,4 +1,4 @@
-// Core types for Dietary Black Box
+// Core types for DataDiet
 
 export interface Food {
   name: string;

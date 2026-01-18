@@ -85,6 +85,9 @@ export function FlagDistributionChart({ data, totalMeals }: FlagDistributionChar
                 color: isDark ? '#fafafa' : '#1c1917',
                 fontWeight: 600,
               }}
+              itemStyle={{
+                color: isDark ? '#d4d4d4' : '#44403c',
+              }}
               formatter={(value, name) => [
                 `${value} occurrences`,
                 String(name),

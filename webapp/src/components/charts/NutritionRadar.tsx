@@ -109,6 +109,9 @@ export function NutritionRadar({ data }: NutritionRadarProps) {
               fontWeight: 600,
               marginBottom: '4px',
             }}
+            itemStyle={{
+              color: isDark ? '#d4d4d4' : '#44403c',
+            }}
             formatter={(value) => [`${Math.round(Number(value ?? 0))}%`, 'vs Target']}
           />
         </RadarChart>

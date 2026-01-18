@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Dietary Black Box — Prevent Disease. React When Needed.",
+  title: "DataDiet — AI-Powered Dietary Intelligence",
   description: "Your silent health companion. Capture meals passively, build a dietary record, and get doctor-ready insights when you need them.",
   icons: {
     icon: "/favicon.ico",

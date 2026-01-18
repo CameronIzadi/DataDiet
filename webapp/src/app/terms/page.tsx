@@ -22,13 +22,13 @@ export default function TermsPage() {
           <div className="prose prose-warm max-w-none">
             <h2 className="text-lg font-semibold text-warm-800 mt-8 mb-4">1. Acceptance of Terms</h2>
             <p className="text-warm-600 mb-4">
-              By accessing and using Dietary Black Box (&quot;the Service&quot;), you agree to be bound by these
+              By accessing and using DataDiet (&quot;the Service&quot;), you agree to be bound by these
               Terms of Service. If you do not agree to these terms, please do not use the Service.
             </p>
 
             <h2 className="text-lg font-semibold text-warm-800 mt-8 mb-4">2. Description of Service</h2>
             <p className="text-warm-600 mb-4">
-              Dietary Black Box is a dietary tracking application that allows users to log meals,
+              DataDiet is a dietary tracking application that allows users to log meals,
               track dietary patterns, and generate reports for healthcare providers. The Service
               uses AI to analyze food images and provide insights.
             </p>
@@ -52,7 +52,7 @@ export default function TermsPage() {
 
             <h2 className="text-lg font-semibold text-warm-800 mt-8 mb-4">5. Intellectual Property</h2>
             <p className="text-warm-600 mb-4">
-              All content, features, and functionality of the Service are owned by Dietary Black Box
+              All content, features, and functionality of the Service are owned by DataDiet
               and are protected by intellectual property laws.
             </p>
 

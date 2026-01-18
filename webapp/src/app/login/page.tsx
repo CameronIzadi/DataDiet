@@ -139,7 +139,7 @@ export default function LoginPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-neutral-900 to-neutral-700 rounded-2xl flex items-center justify-center shadow-lg shadow-black/10">
                 <span className="text-white font-bold text-xl">DB</span>
               </div>
-              <span className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">Dietary Black Box</span>
+              <span className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">DataDiet</span>
             </div>
 
             <AnimatePresence mode="wait">
