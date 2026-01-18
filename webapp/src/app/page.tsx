@@ -554,7 +554,7 @@ export default function LandingPage() {
                 >
                   <span className="text-white font-bold text-lg">DB</span>
                 </motion.div>
-                <span className="font-semibold text-warm-900 dark:text-neutral-100 text-lg hidden sm:block">Dietary Black Box</span>
+                <span className="font-semibold text-warm-900 dark:text-neutral-100 text-lg hidden sm:block">DataDiet</span>
               </motion.div>
               
               <motion.div 
@@ -1197,7 +1197,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-gradient-to-br from-sage-500 to-sage-700 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">DB</span>
               </div>
-              <span className="text-warm-600 dark:text-neutral-400">Dietary Black Box</span>
+              <span className="text-warm-600 dark:text-neutral-400">DataDiet</span>
             </div>
 
             <div className="flex items-center gap-8 text-sm text-warm-500 dark:text-neutral-500">
