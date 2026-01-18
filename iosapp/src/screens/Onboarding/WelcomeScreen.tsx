@@ -62,7 +62,7 @@ export default function WelcomeScreen({ navigation }: Props) {
 
         <View style={styles.centerSection}>
           <Animated.Text style={[styles.description, { color: colors.textMuted }, descStyle]}>
-            Your dietary black box for answers when your body—or your doctor—asks questions.
+            Your dietary black box for answers when your body or your doctor asks questions.
           </Animated.Text>
         </View>
 
