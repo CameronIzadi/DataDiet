@@ -1,13 +1,26 @@
 // Gemini AI Service for food analysis and report generation
+// All API calls go through server-side route to protect API key
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GeminiFoodAnalysis, Meal, Insights, BloodWork } from '@/types';
 
-const genAI = new GoogleGenerativeAI(
-  process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY'
-);
+/**
+ * Call the server-side Gemini API route
+ */
+async function callGeminiAPI(action: string, data: Record<string, unknown>): Promise<string> {
+  const response = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, data }),
+  });
 
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(error.error || 'Failed to process request');
+  }
+
+  const { result } = await response.json();
+  return result;
+}
 
 /**
  * Analyze a meal image using Gemini Vision
@@ -39,13 +52,7 @@ Be thorough in identifying containers. If you see ANY plastic bottle, flag it.
 Return ONLY the JSON, no explanation.`;
 
   try {
-    const result = await model.generateContent([
-      prompt,
-      { inlineData: { data: base64Image, mimeType: 'image/jpeg' } }
-    ]);
-
-    const responseText = result.response.text();
-    // Clean up any markdown formatting
+    const responseText = await callGeminiAPI('analyzeImage', { base64Image, prompt });
     const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
     return JSON.parse(cleanJson);
   } catch (error) {
@@ -105,8 +112,8 @@ Specific potential links between the dietary patterns and the blood work results
 Use professional medical language. Be factual, not alarmist. Focus on patterns, not individual meals.`;
 
   try {
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    const result = await callGeminiAPI('generateReport', { prompt });
+    return result;
   } catch (error) {
     console.error('Report generation error:', error);
     throw new Error('Failed to generate doctor report');
@@ -118,7 +125,7 @@ Use professional medical language. Be factual, not alarmist. Focus on patterns, 
  */
 function getMostFrequentFoods(meals: Meal[]): { name: string; count: number }[] {
   const foodCounts: Record<string, number> = {};
-  
+
   meals.forEach(meal => {
     meal.foods.forEach(food => {
       const name = food.name.toLowerCase();
@@ -163,8 +170,7 @@ Flag rules:
 Return ONLY the JSON.`;
 
   try {
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const responseText = await callGeminiAPI('analyzeText', { prompt });
     const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
     return JSON.parse(cleanJson);
   } catch (error) {
@@ -172,4 +178,3 @@ Return ONLY the JSON.`;
     throw new Error('Failed to analyze meal description');
   }
 }
-

@@ -7,13 +7,14 @@ import { DEMO_MEALS, DEMO_BLOOD_WORK } from '@/data/demoData';
 import { calculateInsights } from '@/services/insights';
 import { onAuthChange } from '@/services/auth';
 import { isFirebaseConfigured } from '@/lib/firebaseClient';
-import { 
-  subscribeToMeals, 
-  subscribeToBloodWork, 
-  addUserMeal, 
+import {
+  subscribeToMeals,
+  subscribeToBloodWork,
+  addUserMeal,
   saveUserBloodWork,
-  deleteUserMeal 
+  deleteUserMeal
 } from '@/services/firestore';
+import { debugLog } from '@/lib/debug';
 
 interface AppContextType {
   meals: Meal[];
@@ -101,12 +102,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setIsSyncing(true);
 
-    // Debug: Log user info
-    console.log('🔐 Logged in user:', {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName
-    });
+    // Debug log (no PII)
+    debugLog('User authenticated', { uid: user.uid });
 
     let unsubscribeMeals: () => void = () => {};
     let unsubscribeBloodWork: () => void = () => {};
@@ -116,15 +113,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       unsubscribeMeals = subscribeToMeals(
         user.uid,
         (firestoreMeals) => {
-          console.log('📥 Received meals from Firestore:', firestoreMeals.length, 'meals');
-          if (firestoreMeals.length > 0) {
-            console.log('📋 Sample meal:', firestoreMeals[0]);
-          }
+          debugLog('Received meals from Firestore', { count: firestoreMeals.length });
           setMeals(firestoreMeals);
           setIsLoading(false);
           setIsSyncing(false);
         },
-        (error) => {
+        () => {
           // Silently handle permission errors - they're expected if rules aren't configured
           // Fall back to empty array on error
           setMeals([]);
@@ -133,7 +127,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       );
     } catch (e) {
-      console.error('Failed to subscribe to meals:', e);
+      debugLog('Failed to subscribe to meals');
       setMeals([]);
       setIsLoading(false);
       setIsSyncing(false);
@@ -152,7 +146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       );
     } catch (e) {
-      console.warn('Failed to subscribe to blood work:', e);
+      debugLog('Failed to subscribe to blood work');
       setBloodWorkState(null);
     }
 

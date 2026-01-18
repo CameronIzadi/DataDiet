@@ -189,17 +189,17 @@ export function getMealTimingDistribution(meals: Meal[]): { label: string; perce
     const h = new Date(m.loggedAt).getHours();
     return h >= 6 && h < 11;
   }).length;
-  
+
   const midday = meals.filter(m => {
     const h = new Date(m.loggedAt).getHours();
     return h >= 11 && h < 15;
   }).length;
-  
+
   const evening = meals.filter(m => {
     const h = new Date(m.loggedAt).getHours();
     return h >= 15 && h < 21;
   }).length;
-  
+
   const late = meals.filter(m => {
     const h = new Date(m.loggedAt).getHours();
     return h >= 21 || h < 6;
@@ -212,6 +212,230 @@ export function getMealTimingDistribution(meals: Meal[]): { label: string; perce
     { label: 'Midday (11am-3pm)', percent: Math.round((midday / total) * 100) },
     { label: 'Evening (3pm-9pm)', percent: Math.round((evening / total) * 100) },
     { label: 'Late (9pm+)', percent: Math.round((late / total) * 100) },
+  ];
+}
+
+/**
+ * Get weekly flag trend data for area chart
+ * Shows daily flag counts over the past 2-4 weeks
+ */
+export interface WeeklyTrendData {
+  date: string;
+  dateShort: string;
+  total: number;
+  processed: number;
+  timing: number;
+  plastic: number;
+}
+
+export function getWeeklyFlagTrend(meals: Meal[]): WeeklyTrendData[] {
+  if (meals.length === 0) return [];
+
+  // Group meals by date
+  const mealsByDate = new Map<string, Meal[]>();
+
+  meals.forEach(meal => {
+    const date = format(new Date(meal.loggedAt), 'yyyy-MM-dd');
+    if (!mealsByDate.has(date)) {
+      mealsByDate.set(date, []);
+    }
+    mealsByDate.get(date)!.push(meal);
+  });
+
+  // Sort dates and take last 28 days max
+  const sortedDates = Array.from(mealsByDate.keys()).sort();
+  const recentDates = sortedDates.slice(-28);
+
+  return recentDates.map(date => {
+    const dayMeals = mealsByDate.get(date) || [];
+
+    const processed = dayMeals.filter(m =>
+      m.flags.includes('processed_meat') || m.flags.includes('ultra_processed')
+    ).length;
+
+    const timing = dayMeals.filter(m =>
+      m.flags.includes('late_meal') || m.flags.includes('caffeine')
+    ).length;
+
+    const plastic = dayMeals.filter(m =>
+      m.flags.includes('plastic_bottle') || m.flags.includes('plastic_container_hot')
+    ).length;
+
+    const total = processed + timing + plastic;
+
+    return {
+      date,
+      dateShort: format(parseISO(date), 'MMM d'),
+      total,
+      processed,
+      timing,
+      plastic,
+    };
+  });
+}
+
+/**
+ * Get flag distribution data for donut chart
+ * Shows frequency of each flag type
+ */
+export interface FlagDistributionData {
+  name: string;
+  value: number;
+  flag: string;
+  [key: string]: string | number;
+}
+
+export function getFlagDistribution(meals: Meal[]): FlagDistributionData[] {
+  if (meals.length === 0) return [];
+
+  const flagLabels: Record<string, string> = {
+    processed_meat: 'Processed Meat',
+    ultra_processed: 'Ultra-Processed',
+    charred_grilled: 'Charred/Grilled',
+    fried: 'Fried Foods',
+    late_meal: 'Late Meals',
+    caffeine: 'Caffeine',
+    plastic_bottle: 'Plastic Bottles',
+    plastic_container_hot: 'Hot Plastic',
+    high_sugar_beverage: 'Sugary Drinks',
+    alcohol: 'Alcohol',
+    high_sodium: 'High Sodium',
+    refined_grain: 'Refined Grains',
+    spicy_irritant: 'Spicy Foods',
+    acidic_trigger: 'Acidic Foods',
+  };
+
+  // Count each flag
+  const flagCounts = new Map<string, number>();
+
+  meals.forEach(meal => {
+    meal.flags.forEach(flag => {
+      flagCounts.set(flag, (flagCounts.get(flag) || 0) + 1);
+    });
+  });
+
+  // Convert to array and sort by count
+  const distribution = Array.from(flagCounts.entries())
+    .map(([flag, value]) => ({
+      name: flagLabels[flag] || flag,
+      value,
+      flag,
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  // Take top 6 and group rest as "Other"
+  if (distribution.length > 6) {
+    const top6 = distribution.slice(0, 6);
+    const otherCount = distribution.slice(6).reduce((sum, item) => sum + item.value, 0);
+    if (otherCount > 0) {
+      top6.push({ name: 'Other', value: otherCount, flag: 'other' });
+    }
+    return top6;
+  }
+
+  return distribution;
+}
+
+/**
+ * Get enhanced meal timing data comparing weekday vs weekend
+ */
+export interface EnhancedMealTimingData {
+  slot: string;
+  weekday: number;
+  weekend: number;
+  isDangerZone: boolean;
+}
+
+export function getEnhancedMealTiming(meals: Meal[]): EnhancedMealTimingData[] {
+  if (meals.length === 0) return [];
+
+  const slots = [
+    { name: 'Early (5-8am)', start: 5, end: 8, danger: false },
+    { name: 'Morning (8-11am)', start: 8, end: 11, danger: false },
+    { name: 'Lunch (11am-2pm)', start: 11, end: 14, danger: false },
+    { name: 'Afternoon (2-5pm)', start: 14, end: 17, danger: false },
+    { name: 'Dinner (5-8pm)', start: 17, end: 20, danger: false },
+    { name: 'Evening (8-9pm)', start: 20, end: 21, danger: false },
+    { name: 'Late (9pm+)', start: 21, end: 24, danger: true },
+  ];
+
+  const weekdayMeals = meals.filter(m => {
+    const day = new Date(m.loggedAt).getDay();
+    return day >= 1 && day <= 5;
+  });
+
+  const weekendMeals = meals.filter(m => {
+    const day = new Date(m.loggedAt).getDay();
+    return day === 0 || day === 6;
+  });
+
+  const countMealsInSlot = (mealList: Meal[], start: number, end: number) => {
+    return mealList.filter(m => {
+      const hour = new Date(m.loggedAt).getHours();
+      if (start === 21 && end === 24) {
+        // Late slot includes 9pm to midnight and early morning
+        return hour >= 21 || hour < 5;
+      }
+      return hour >= start && hour < end;
+    }).length;
+  };
+
+  return slots.map(slot => ({
+    slot: slot.name,
+    weekday: countMealsInSlot(weekdayMeals, slot.start, slot.end),
+    weekend: countMealsInSlot(weekendMeals, slot.start, slot.end),
+    isDangerZone: slot.danger,
+  }));
+}
+
+/**
+ * Get nutrition balance data for radar chart
+ * Only returns data if meals have nutrition info
+ */
+export interface NutritionBalanceData {
+  metric: string;
+  value: number;
+  fullMark: number;
+}
+
+export function getNutritionBalance(meals: Meal[]): NutritionBalanceData[] | null {
+  // Filter meals that have nutrition data
+  const mealsWithNutrition = meals.filter(m => m.nutrition);
+
+  // Need at least 3 meals with nutrition data
+  if (mealsWithNutrition.length < 3) return null;
+
+  // Calculate averages
+  const totals = mealsWithNutrition.reduce(
+    (acc, meal) => {
+      if (meal.nutrition) {
+        acc.protein += meal.nutrition.protein;
+        acc.carbs += meal.nutrition.carbs;
+        acc.fat += meal.nutrition.fat;
+        acc.sodium += meal.nutrition.sodium;
+        acc.calories += meal.nutrition.calories;
+      }
+      return acc;
+    },
+    { protein: 0, carbs: 0, fat: 0, sodium: 0, calories: 0 }
+  );
+
+  const count = mealsWithNutrition.length;
+
+  // Normalize values to 0-100 scale based on daily recommended values
+  // Using per-meal targets (assuming 3 meals/day)
+  const normalize = (value: number, dailyTarget: number) => {
+    const perMealTarget = dailyTarget / 3;
+    const avgPerMeal = value / count;
+    // Scale so 100% of target = 80 on chart, allowing overages
+    return Math.min(100, (avgPerMeal / perMealTarget) * 80);
+  };
+
+  return [
+    { metric: 'Protein', value: normalize(totals.protein, 50), fullMark: 100 },
+    { metric: 'Carbs', value: normalize(totals.carbs, 275), fullMark: 100 },
+    { metric: 'Fat', value: normalize(totals.fat, 65), fullMark: 100 },
+    { metric: 'Sodium', value: normalize(totals.sodium, 2300), fullMark: 100 },
   ];
 }
 

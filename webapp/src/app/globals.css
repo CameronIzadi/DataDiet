@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for manual toggle */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Premium color palette - warm neutrals with sage accent */
   --color-sage-50: #f4f7f4;
@@ -12,7 +15,7 @@
   --color-sage-700: #3b4f3b;
   --color-sage-800: #324032;
   --color-sage-900: #2a352a;
-  
+
   /* Warm stone neutrals */
   --color-warm-50: #fafaf9;
   --color-warm-100: #f5f5f4;
@@ -25,30 +28,117 @@
   --color-warm-800: #292524;
   --color-warm-900: #1c1917;
   --color-warm-950: #0c0a09;
-  
+
+  /* Standardized Border Radius Scale */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+
+  /* Standardized Shadow System */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.04);
+  --shadow-sage: 0 8px 24px -4px rgba(92, 122, 92, 0.2);
+
+  /* Neutral palette for dark mode compatibility */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+
   /* Accent colors */
   --color-amber: #f59e0b;
   --color-rose: #f43f5e;
   --color-emerald: #10b981;
   --color-violet: #8b5cf6;
-  
+
+  /* Chart colors - Light mode */
+  --chart-processed: #f43f5e;
+  --chart-cooking: #f59e0b;
+  --chart-timing: #8b5cf6;
+  --chart-plastic: #3b82f6;
+  --chart-beverages: #ec4899;
+  --chart-nutrition: #10b981;
+  --chart-grid: rgba(120, 113, 108, 0.15);
+  --chart-text: #78716c;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #e7e5e4;
+
   --background: #fafaf9;
   --foreground: #1c1917;
-  
+
   /* Card colors */
   --card-bg: #ffffff;
   --card-border: #e7e5e4;
   --card-elevated-bg: #ffffff;
+
+  /* Input colors */
+  --input-bg: #ffffff;
+  --input-border: #e7e5e4;
+  --input-border-hover: #d6d3d1;
+  --input-text: #1c1917;
+  --input-placeholder: #a8a29e;
+
+  /* Navigation */
+  --nav-bg-scrolled: rgba(250, 250, 249, 0.95);
 }
 
 /* Dark mode - proper dark theme colors */
 .dark {
-  --background: #0f0f0f;
+  --background: #0a0a0a;
   --foreground: #fafafa;
-  
-  --card-bg: #1a1a1a;
-  --card-border: #2a2a2a;
-  --card-elevated-bg: #1a1a1a;
+
+  --card-bg: #141414;
+  --card-border: #262626;
+  --card-elevated-bg: #171717;
+
+  /* Input colors for dark mode */
+  --input-bg: #171717;
+  --input-border: #262626;
+  --input-border-hover: #404040;
+  --input-text: #fafafa;
+  --input-placeholder: #737373;
+
+  /* Adjust sage colors for dark mode readability */
+  --color-sage-50: #1a231a;
+  --color-sage-100: #243024;
+  --color-sage-200: #324032;
+  --color-sage-800: #a3b8a3;
+  --color-sage-900: #c9d7c9;
+
+  /* Navigation */
+  --nav-bg-scrolled: rgba(10, 10, 10, 0.95);
+
+  /* Chart colors - Dark mode */
+  --chart-processed: #fb7185;
+  --chart-cooking: #fbbf24;
+  --chart-timing: #a78bfa;
+  --chart-plastic: #60a5fa;
+  --chart-beverages: #f472b6;
+  --chart-nutrition: #34d399;
+  --chart-grid: rgba(255, 255, 255, 0.1);
+  --chart-text: #a3a3a3;
+  --chart-tooltip-bg: #171717;
+  --chart-tooltip-border: #262626;
+
+  /* Dark mode shadows with higher opacity */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.35), 0 8px 16px rgba(0, 0, 0, 0.15);
+  --shadow-sage: 0 8px 24px -4px rgba(92, 122, 92, 0.35);
 }
 
 @theme inline {
@@ -63,7 +153,7 @@
   --color-sage-700: var(--color-sage-700);
   --color-sage-800: var(--color-sage-800);
   --color-sage-900: var(--color-sage-900);
-  
+
   /* Warm colors - REQUIRED for text-warm-XXX, bg-warm-XXX classes */
   --color-warm-50: var(--color-warm-50);
   --color-warm-100: var(--color-warm-100);
@@ -76,7 +166,20 @@
   --color-warm-800: var(--color-warm-800);
   --color-warm-900: var(--color-warm-900);
   --color-warm-950: var(--color-warm-950);
-  
+
+  /* Neutral colors - REQUIRED for dark mode dark:bg-neutral-XXX classes */
+  --color-neutral-50: var(--color-neutral-50);
+  --color-neutral-100: var(--color-neutral-100);
+  --color-neutral-200: var(--color-neutral-200);
+  --color-neutral-300: var(--color-neutral-300);
+  --color-neutral-400: var(--color-neutral-400);
+  --color-neutral-500: var(--color-neutral-500);
+  --color-neutral-600: var(--color-neutral-600);
+  --color-neutral-700: var(--color-neutral-700);
+  --color-neutral-800: var(--color-neutral-800);
+  --color-neutral-900: var(--color-neutral-900);
+  --color-neutral-950: var(--color-neutral-950);
+
   /* Fonts */
   --font-display: 'Instrument Serif', Georgia, serif;
   --font-body: 'Inter', system-ui, sans-serif;
@@ -122,10 +225,23 @@ body {
   background: var(--color-warm-400);
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-700);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-600);
+}
+
 /* Selection */
 ::selection {
   background: var(--color-sage-200);
   color: var(--color-sage-900);
+}
+
+.dark ::selection {
+  background: var(--color-sage-600);
+  color: white;
 }
 
 /* ============================================
@@ -317,8 +433,8 @@ body {
    ============================================ */
 
 .card {
-  background: white;
-  border: 1px solid var(--color-warm-200);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 1.5rem;
   transition: all 0.2s ease;
@@ -329,29 +445,52 @@ body {
   box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.08);
 }
 
+.dark .card:hover {
+  border-color: var(--color-neutral-600);
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
+}
+
 .card-elevated {
-  background: white;
+  background: var(--card-elevated-bg);
   border-radius: 20px;
   padding: 2rem;
-  box-shadow: 
+  box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.03),
     0 2px 4px rgba(0, 0, 0, 0.02),
     0 8px 24px -4px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
 
+.dark .card-elevated {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4);
+}
+
 .card-elevated:hover {
-  box-shadow: 
+  box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.03),
     0 4px 8px rgba(0, 0, 0, 0.04),
     0 16px 40px -8px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
 }
 
+.dark .card-elevated:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    0 16px 40px -8px rgba(0, 0, 0, 0.5);
+}
+
 .glass {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .glass {
+  background: rgba(23, 23, 23, 0.8);
 }
 
 .glass-dark {
@@ -389,10 +528,20 @@ body {
   color: white;
 }
 
+.dark .btn-primary {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
 .btn-primary:hover {
   background: var(--color-warm-800);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.2);
+}
+
+.dark .btn-primary:hover {
+  background: var(--color-neutral-200);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary:active {
@@ -405,9 +554,20 @@ body {
   border: 1px solid var(--color-warm-200);
 }
 
+.dark .btn-secondary {
+  background: var(--color-neutral-800);
+  color: var(--color-neutral-200);
+  border-color: var(--color-neutral-700);
+}
+
 .btn-secondary:hover {
   background: var(--color-warm-50);
   border-color: var(--color-warm-300);
+}
+
+.dark .btn-secondary:hover {
+  background: var(--color-neutral-700);
+  border-color: var(--color-neutral-600);
 }
 
 .btn-ghost {
@@ -415,9 +575,18 @@ body {
   color: var(--color-warm-600);
 }
 
+.dark .btn-ghost {
+  color: var(--color-neutral-400);
+}
+
 .btn-ghost:hover {
   background: var(--color-warm-100);
   color: var(--color-warm-800);
+}
+
+.dark .btn-ghost:hover {
+  background: var(--color-neutral-800);
+  color: var(--color-neutral-200);
 }
 
 .btn-sage {
@@ -450,25 +619,37 @@ body {
 .input {
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 1px solid var(--color-warm-200);
-  border-radius: 12px;
-  background: white;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  background: var(--input-bg);
+  color: var(--input-text);
   font-size: 1rem;
   transition: all 0.2s ease;
   outline: none;
 }
 
 .input:hover {
-  border-color: var(--color-warm-300);
+  border-color: var(--input-border-hover);
+  background: var(--color-warm-50);
+}
+
+.dark .input:hover {
+  background: var(--color-neutral-800);
 }
 
 .input:focus {
   border-color: var(--color-sage-500);
-  box-shadow: 0 0 0 3px rgba(92, 122, 92, 0.1);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(92, 122, 92, 0.1);
+}
+
+.dark .input:focus {
+  background: var(--color-neutral-900);
+  box-shadow: 0 0 0 4px rgba(92, 122, 92, 0.25);
 }
 
 .input::placeholder {
-  color: var(--color-warm-400);
+  color: var(--input-placeholder);
 }
 
 /* ============================================
@@ -491,9 +672,19 @@ body {
   color: var(--color-warm-600);
 }
 
+.dark .badge-neutral {
+  background: var(--color-neutral-800);
+  color: var(--color-neutral-400);
+}
+
 .badge-success {
   background: #d1fae5;
   color: #065f46;
+}
+
+.dark .badge-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
 }
 
 .badge-warning {
@@ -501,14 +692,29 @@ body {
   color: #92400e;
 }
 
+.dark .badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+
 .badge-danger {
   background: #fee2e2;
   color: #991b1b;
 }
 
+.dark .badge-danger {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fda4af;
+}
+
 .badge-sage {
   background: var(--color-sage-100);
   color: var(--color-sage-700);
+}
+
+.dark .badge-sage {
+  background: rgba(92, 122, 92, 0.2);
+  color: var(--color-sage-400);
 }
 
 /* ============================================
