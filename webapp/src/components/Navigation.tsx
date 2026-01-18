@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, BarChart3, FileText, Droplets, LogOut, User, Sun, Moon } from 'lucide-react';
+import { Home, BarChart3, FileText, Droplets, LogOut, User, Sun, Moon, MessageCircle } from 'lucide-react';
 import { onAuthChange, signOutUser } from '@/services/auth';
 import { User as FirebaseUser } from 'firebase/auth';
 import { useTheme } from '@/context/ThemeContext';
@@ -12,6 +12,7 @@ import { useTheme } from '@/context/ThemeContext';
 const navItems = [
   { href: '/app', label: 'Home', icon: Home },
   { href: '/app/insights', label: 'Insights', icon: BarChart3 },
+  { href: '/app/messages', label: 'Messages', icon: MessageCircle },
   { href: '/app/bloodwork', label: 'Blood Work', icon: Droplets },
   { href: '/app/report', label: 'Report', icon: FileText },
 ];
@@ -47,7 +48,7 @@ export function Navigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <div className="hidden md:block sticky top-0 z-50">
+      <div className="block sticky top-0 z-50">
         <nav className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-b border-warm-200/50 dark:border-neutral-800/50">
           <div className="max-w-6xl mx-auto px-6">
             <div className="flex items-center justify-between h-16">
