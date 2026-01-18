@@ -153,7 +153,7 @@ function RevealOnScroll({ children, className = '', delay = 0 }: { children: Rea
 function BentoCard({ children, className = '', hover = true }: { children: React.ReactNode; className?: string; hover?: boolean }) {
   return (
     <motion.div
-      className={`relative overflow-hidden rounded-3xl bg-white border border-warm-100 ${className}`}
+      className={`relative overflow-hidden rounded-3xl bg-white dark:bg-neutral-900 border border-warm-100 dark:border-neutral-800 ${className}`}
       whileHover={hover ? { y: -4, boxShadow: '0 20px 40px -12px rgba(0,0,0,0.1)' } : {}}
       transition={{ duration: 0.3 }}
     >
@@ -427,9 +427,9 @@ function InteractivePhone({ activeScreen, setActiveScreen }: { activeScreen: num
   ];
 
   return (
-    <div className="relative">
+    <div className="relative group/phone">
       {/* Phone frame */}
-      <div className="relative w-[300px] h-[620px] bg-warm-900 rounded-[50px] p-3 shadow-2xl shadow-warm-900/30">
+      <div className="relative w-[280px] lg:w-[260px] h-[580px] lg:h-[540px] bg-warm-900 rounded-[50px] p-3 shadow-2xl shadow-warm-900/30 opacity-95 group-hover/phone:opacity-100 transition-opacity duration-300">
         {/* Dynamic Island */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-8 bg-warm-900 rounded-full z-20 flex items-center justify-center gap-2">
           <div className="w-2 h-2 rounded-full bg-warm-700" />
@@ -490,7 +490,8 @@ export default function LandingPage() {
   const { scrollYProgress } = useScroll();
   const { theme, toggleTheme } = useTheme();
   
-  const navBg = useTransform(scrollYProgress, [0, 0.02], ['rgba(250,250,249,0)', 'rgba(250,250,249,0.95)']);
+  // Note: navBg uses light mode colors, dark mode handled via CSS
+  const navBg = useTransform(scrollYProgress, [0, 0.02], ['transparent', 'var(--nav-bg-scrolled)']);
 
   useEffect(() => {
     const unsubscribe = onAuthChange((user) => setUser(user));
@@ -528,7 +529,7 @@ export default function LandingPage() {
   }, [lastScrollY]);
 
   return (
-    <div className="min-h-screen bg-[#fafaf9] overflow-x-hidden">
+    <div className="min-h-screen bg-[#fafaf9] dark:bg-neutral-950 overflow-x-hidden transition-colors duration-300">
       {/* Navigation with fade mask */}
       <motion.div 
         className="fixed top-0 left-0 right-0 z-50"
@@ -542,18 +543,18 @@ export default function LandingPage() {
         >
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center justify-between h-20">
-              <motion.div 
+              <motion.div
                 className="flex items-center gap-3"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <motion.div 
+                <motion.div
                   className="w-10 h-10 bg-gradient-to-br from-sage-500 to-sage-700 rounded-xl flex items-center justify-center shadow-lg shadow-sage-500/25"
                   whileHover={{ rotate: 10, scale: 1.05 }}
                 >
                   <span className="text-white font-bold text-lg">DB</span>
                 </motion.div>
-                <span className="font-semibold text-warm-900 text-lg hidden sm:block">Dietary Black Box</span>
+                <span className="font-semibold text-warm-900 dark:text-neutral-100 text-lg hidden sm:block">Dietary Black Box</span>
               </motion.div>
               
               <motion.div 
@@ -590,11 +591,8 @@ export default function LandingPage() {
           </div>
         </motion.nav>
         {/* Gradient fade mask below nav - creates smooth content blend */}
-        <div 
-          className="h-20 pointer-events-none -mt-px"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(250, 250, 249, 1) 0%, rgba(250, 250, 249, 0.9) 30%, rgba(250, 250, 249, 0.5) 60%, rgba(250, 250, 249, 0) 100%)',
-          }}
+        <div
+          className="h-20 pointer-events-none -mt-px bg-gradient-to-b from-[#fafaf9] via-[#fafaf9]/50 to-transparent dark:from-neutral-950 dark:via-neutral-950/50"
         />
       </motion.div>
 
@@ -618,8 +616,8 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left content */}
             <div>
-              <motion.h1 
-                className="text-display text-5xl sm:text-6xl lg:text-7xl text-warm-900 mb-6 leading-[1.05]"
+              <motion.h1
+                className="text-display text-5xl sm:text-6xl lg:text-7xl text-warm-900 dark:text-neutral-100 mb-6 leading-[1.05]"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -628,15 +626,15 @@ export default function LandingPage() {
                 <br />
                 <GradientText>React when needed.</GradientText>
               </motion.h1>
-              
-              <motion.p 
-                className="text-xl text-warm-600 mb-10 max-w-xl leading-relaxed"
+
+              <motion.p
+                className="text-xl text-warm-600 dark:text-neutral-400 mb-10 max-w-xl leading-relaxed"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                Your silent health companion. Capture meals in seconds, build a dietary record passively, and get 
-                <span className="text-warm-900 font-semibold"> doctor-ready insights</span> when you actually need them.
+                Your silent health companion. Capture meals in seconds, build a dietary record passively, and get
+                <span className="text-warm-900 dark:text-neutral-200 font-semibold"> doctor-ready insights</span> when you actually need them.
               </motion.p>
               
               <motion.div 
@@ -655,9 +653,9 @@ export default function LandingPage() {
                   </Link>
                 </MagneticWrapper>
                 <MagneticWrapper>
-                  <a 
-                    href="#how-it-works" 
-                    className="px-8 py-4 bg-white border-2 border-warm-200 text-warm-700 rounded-2xl font-medium text-lg hover:border-warm-300 hover:bg-warm-50 transition-all flex items-center gap-3"
+                  <a
+                    href="#how-it-works"
+                    className="px-8 py-4 bg-white dark:bg-neutral-800 border-2 border-warm-200 dark:border-neutral-700 text-warm-700 dark:text-neutral-200 rounded-2xl font-medium text-lg hover:border-warm-300 dark:hover:border-neutral-600 hover:bg-warm-50 dark:hover:bg-neutral-700 transition-all flex items-center gap-3"
                   >
                     <Play className="w-5 h-5" />
                     See how it works
@@ -666,8 +664,8 @@ export default function LandingPage() {
               </motion.div>
               
               {/* Trust indicators */}
-              <motion.div 
-                className="flex items-center gap-8 text-warm-500"
+              <motion.div
+                className="flex items-center gap-8 text-warm-500 dark:text-neutral-400"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
@@ -678,7 +676,7 @@ export default function LandingPage() {
                   { icon: Zap, text: '2-second capture' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <item.icon className="w-4 h-4 text-sage-600" />
+                    <item.icon className="w-4 h-4 text-sage-600 dark:text-sage-400" />
                     <span className="text-sm font-medium">{item.text}</span>
                   </div>
                 ))}
@@ -698,12 +696,12 @@ export default function LandingPage() {
         </div>
         
         {/* Scroll indicator */}
-        <motion.div 
+        <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <ChevronDown className="w-6 h-6 text-warm-400" />
+          <ChevronDown className="w-6 h-6 text-warm-400 dark:text-neutral-500" />
         </motion.div>
       </section>
 
@@ -711,11 +709,11 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <RevealOnScroll className="text-center mb-16">
-            <p className="text-sage-600 font-semibold mb-4 tracking-wide uppercase text-sm">How It Works</p>
-            <h2 className="text-display text-3xl md:text-4xl text-warm-900 mb-4">
+            <p className="text-sage-600 dark:text-sage-400 font-semibold mb-4 tracking-wide uppercase text-sm">How It Works</p>
+            <h2 className="text-display text-3xl md:text-4xl text-warm-900 dark:text-neutral-100 mb-4">
               Three steps to better health insights
             </h2>
-            <p className="text-lg text-warm-500 max-w-2xl mx-auto">
+            <p className="text-lg text-warm-500 dark:text-neutral-400 max-w-2xl mx-auto">
               No calorie counting. No food diaries. Just snap and forget.
             </p>
           </RevealOnScroll>
@@ -766,28 +764,28 @@ export default function LandingPage() {
               <BentoCard className="p-8 h-full min-h-[400px]">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-                      <BellOff className="w-6 h-6 text-blue-600" />
+                    <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <BellOff className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <div className="text-sm font-bold text-warm-400">Step 2</div>
+                    <div className="text-sm font-bold text-warm-400 dark:text-neutral-500">Step 2</div>
                   </div>
-                  <h3 className="text-2xl font-bold text-warm-900 mb-4">Forget about it</h3>
-                  <p className="text-warm-600 mb-8">
+                  <h3 className="text-2xl font-bold text-warm-900 dark:text-neutral-100 mb-4">Forget about it</h3>
+                  <p className="text-warm-600 dark:text-neutral-400 mb-8">
                     No notifications. No streaks. No guilt. Your data quietly builds in the background.
                   </p>
                   <div className="mt-auto">
-                    <div className="bg-warm-50 rounded-2xl p-4">
+                    <div className="bg-warm-50 dark:bg-neutral-800 rounded-2xl p-4">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-warm-200 flex items-center justify-center">
-                          <X className="w-4 h-4 text-warm-500" />
+                        <div className="w-8 h-8 rounded-full bg-warm-200 dark:bg-neutral-700 flex items-center justify-center">
+                          <X className="w-4 h-4 text-warm-500 dark:text-neutral-400" />
                         </div>
-                        <span className="text-sm text-warm-500 line-through">Daily reminders</span>
+                        <span className="text-sm text-warm-500 dark:text-neutral-500 line-through">Daily reminders</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-warm-200 flex items-center justify-center">
-                          <X className="w-4 h-4 text-warm-500" />
+                        <div className="w-8 h-8 rounded-full bg-warm-200 dark:bg-neutral-700 flex items-center justify-center">
+                          <X className="w-4 h-4 text-warm-500 dark:text-neutral-400" />
                         </div>
-                        <span className="text-sm text-warm-500 line-through">Calorie counting</span>
+                        <span className="text-sm text-warm-500 dark:text-neutral-500 line-through">Calorie counting</span>
                       </div>
                     </div>
                   </div>
@@ -800,13 +798,13 @@ export default function LandingPage() {
               <BentoCard className="p-8 h-full min-h-[400px]">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center">
-                      <TrendingUp className="w-6 h-6 text-violet-600" />
+                    <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-violet-600 dark:text-violet-400" />
                     </div>
-                    <div className="text-sm font-bold text-warm-400">Step 3</div>
+                    <div className="text-sm font-bold text-warm-400 dark:text-neutral-500">Step 3</div>
                   </div>
-                  <h3 className="text-2xl font-bold text-warm-900 mb-4">See hidden patterns</h3>
-                  <p className="text-warm-600 mb-8">
+                  <h3 className="text-2xl font-bold text-warm-900 dark:text-neutral-100 mb-4">See hidden patterns</h3>
+                  <p className="text-warm-600 dark:text-neutral-400 mb-8">
                     Discover insights no other app tracks—plastic exposure, processed foods, late eating patterns.
                   </p>
                   <div className="mt-auto space-y-3">
@@ -817,11 +815,11 @@ export default function LandingPage() {
                     ].map((item, i) => (
                       <div key={i}>
                         <div className="flex justify-between text-xs mb-1">
-                          <span className="text-warm-500">{item.label}</span>
-                          <span className="text-warm-700 font-medium">{item.value}</span>
+                          <span className="text-warm-500 dark:text-neutral-500">{item.label}</span>
+                          <span className="text-warm-700 dark:text-neutral-300 font-medium">{item.value}</span>
                         </div>
-                        <div className="h-2 bg-warm-100 rounded-full overflow-hidden">
-                          <motion.div 
+                        <div className="h-2 bg-warm-100 dark:bg-neutral-700 rounded-full overflow-hidden">
+                          <motion.div
                             className={`h-full ${item.color} rounded-full`}
                             initial={{ width: 0 }}
                             whileInView={{ width: `${(item.value / item.max) * 100}%` }}
@@ -936,38 +934,38 @@ export default function LandingPage() {
       </section>
 
       {/* Doctor Communication Section */}
-      <section className="py-24 px-6 bg-gradient-to-b from-warm-50/50 to-transparent">
+      <section className="py-24 px-6 bg-gradient-to-b from-warm-50/50 dark:from-neutral-900/50 to-transparent">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left - PDF Preview */}
             <RevealOnScroll>
               <div className="relative">
                 {/* PDF Document Mockup */}
-                <div className="bg-white rounded-2xl shadow-2xl shadow-warm-900/10 p-8 border border-warm-100">
+                <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl shadow-warm-900/10 dark:shadow-black/30 p-8 border border-warm-100 dark:border-neutral-800">
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-6 pb-6 border-b border-warm-100">
+                  <div className="flex items-center justify-between mb-6 pb-6 border-b border-warm-100 dark:border-neutral-800">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-sage-500 to-sage-700 rounded-xl flex items-center justify-center">
                         <span className="text-white font-bold text-sm">DB</span>
                       </div>
                       <div>
-                        <p className="font-semibold text-warm-900">Dietary Report</p>
-                        <p className="text-xs text-warm-500">Generated for Dr. Smith</p>
+                        <p className="font-semibold text-warm-900 dark:text-neutral-100">Dietary Report</p>
+                        <p className="text-xs text-warm-500 dark:text-neutral-500">Generated for Dr. Smith</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-warm-400">Report Date</p>
-                      <p className="text-sm font-medium text-warm-700">Jan 17, 2025</p>
+                      <p className="text-xs text-warm-400 dark:text-neutral-500">Report Date</p>
+                      <p className="text-sm font-medium text-warm-700 dark:text-neutral-300">Jan 17, 2025</p>
                     </div>
                   </div>
-                  
+
                   {/* Patient Summary */}
                   <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-warm-900 mb-3">Patient Summary</h3>
-                    <div className="bg-warm-50 rounded-xl p-4">
-                      <p className="text-sm text-warm-600 leading-relaxed">
-                        Patient logged <span className="font-semibold text-warm-900">18 meals</span> over a 2-week period. 
-                        Analysis reveals moderate concerns regarding processed meat consumption and late-night eating patterns 
+                    <h3 className="text-sm font-semibold text-warm-900 dark:text-neutral-100 mb-3">Patient Summary</h3>
+                    <div className="bg-warm-50 dark:bg-neutral-800 rounded-xl p-4">
+                      <p className="text-sm text-warm-600 dark:text-neutral-400 leading-relaxed">
+                        Patient logged <span className="font-semibold text-warm-900 dark:text-neutral-200">18 meals</span> over a 2-week period.
+                        Analysis reveals moderate concerns regarding processed meat consumption and late-night eating patterns
                         that may warrant discussion.
                       </p>
                     </div>
@@ -975,34 +973,34 @@ export default function LandingPage() {
                   
                   {/* Key Metrics */}
                   <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-warm-900 mb-3">Key Findings</h3>
+                    <h3 className="text-sm font-semibold text-warm-900 dark:text-neutral-100 mb-3">Key Findings</h3>
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="bg-amber-50 rounded-xl p-3 text-center border border-amber-100">
-                        <p className="text-2xl font-bold text-amber-700">6</p>
-                        <p className="text-[10px] text-amber-600">Processed Meat Servings</p>
+                      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-center border border-amber-100 dark:border-amber-800/30">
+                        <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">6</p>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-500">Processed Meat Servings</p>
                       </div>
-                      <div className="bg-rose-50 rounded-xl p-3 text-center border border-rose-100">
-                        <p className="text-2xl font-bold text-rose-700">28%</p>
-                        <p className="text-[10px] text-rose-600">Late Night Meals</p>
+                      <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-3 text-center border border-rose-100 dark:border-rose-800/30">
+                        <p className="text-2xl font-bold text-rose-700 dark:text-rose-400">28%</p>
+                        <p className="text-[10px] text-rose-600 dark:text-rose-500">Late Night Meals</p>
                       </div>
-                      <div className="bg-blue-50 rounded-xl p-3 text-center border border-blue-100">
-                        <p className="text-2xl font-bold text-blue-700">10</p>
-                        <p className="text-[10px] text-blue-600">Plastic Bottles</p>
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-center border border-blue-100 dark:border-blue-800/30">
+                        <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">10</p>
+                        <p className="text-[10px] text-blue-600 dark:text-blue-500">Plastic Bottles</p>
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Recommendations */}
                   <div>
-                    <h3 className="text-sm font-semibold text-warm-900 mb-3">AI Recommendations</h3>
+                    <h3 className="text-sm font-semibold text-warm-900 dark:text-neutral-100 mb-3">AI Recommendations</h3>
                     <ul className="space-y-2">
                       {[
                         'Consider reducing processed meat to under 4 servings/week',
                         'Shift dinner time earlier to improve metabolic health',
                         'Switch to glass or stainless steel water bottles'
                       ].map((rec, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-warm-600">
-                          <Check className="w-4 h-4 text-sage-600 mt-0.5 flex-shrink-0" />
+                        <li key={i} className="flex items-start gap-2 text-sm text-warm-600 dark:text-neutral-400">
+                          <Check className="w-4 h-4 text-sage-600 dark:text-sage-400 mt-0.5 flex-shrink-0" />
                           {rec}
                         </li>
                       ))}
@@ -1025,15 +1023,15 @@ export default function LandingPage() {
             {/* Right - Content */}
             <RevealOnScroll delay={0.2}>
               <div>
-                <p className="text-sage-600 font-semibold mb-4 tracking-wide uppercase text-sm">Doctor Communication</p>
-                <h2 className="text-display text-3xl md:text-4xl text-warm-900 mb-6">
+                <p className="text-sage-600 dark:text-sage-400 font-semibold mb-4 tracking-wide uppercase text-sm">Doctor Communication</p>
+                <h2 className="text-display text-3xl md:text-4xl text-warm-900 dark:text-neutral-100 mb-6">
                   Share meaningful data with your healthcare provider
                 </h2>
-                <p className="text-lg text-warm-600 mb-8 leading-relaxed">
-                  Generate professional PDF reports that your doctor will actually find useful. 
+                <p className="text-lg text-warm-600 dark:text-neutral-400 mb-8 leading-relaxed">
+                  Generate professional PDF reports that your doctor will actually find useful.
                   No more "What have you been eating?" — now you have the data to show them.
                 </p>
-                
+
                 <div className="space-y-4 mb-8">
                   {[
                     { title: 'AI-Generated Summaries', desc: 'Clear, medical-friendly language' },
@@ -1041,27 +1039,27 @@ export default function LandingPage() {
                     { title: 'Pattern Detection', desc: 'Correlations a food diary would miss' },
                     { title: 'One-Click Export', desc: 'Download or share instantly' },
                   ].map((item, i) => (
-                    <motion.div 
+                    <motion.div
                       key={i}
                       className="flex items-start gap-4"
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + i * 0.1 }}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-sage-100 flex items-center justify-center flex-shrink-0">
-                        <Check className="w-4 h-4 text-sage-600" />
+                      <div className="w-8 h-8 rounded-lg bg-sage-100 dark:bg-sage-900/30 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-4 h-4 text-sage-600 dark:text-sage-400" />
                       </div>
                       <div>
-                        <p className="font-semibold text-warm-900">{item.title}</p>
-                        <p className="text-sm text-warm-500">{item.desc}</p>
+                        <p className="font-semibold text-warm-900 dark:text-neutral-100">{item.title}</p>
+                        <p className="text-sm text-warm-500 dark:text-neutral-500">{item.desc}</p>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-                
+
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-warm-900 text-white rounded-xl font-medium hover:bg-warm-800 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-warm-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-xl font-medium hover:bg-warm-800 dark:hover:bg-neutral-200 transition-colors"
                 >
                   <FileText className="w-4 h-4" />
                   Try it free
@@ -1076,70 +1074,70 @@ export default function LandingPage() {
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <RevealOnScroll className="text-center mb-16">
-            <p className="text-sage-600 font-semibold mb-4 tracking-wide uppercase text-sm">Why It's Different</p>
-            <h2 className="text-display text-3xl md:text-4xl text-warm-900 mb-6">
+            <p className="text-sage-600 dark:text-sage-400 font-semibold mb-4 tracking-wide uppercase text-sm">Why It&apos;s Different</p>
+            <h2 className="text-display text-3xl md:text-4xl text-warm-900 dark:text-neutral-100 mb-6">
               Not another calorie counter
             </h2>
-            <p className="text-lg text-warm-500 max-w-2xl mx-auto">
+            <p className="text-lg text-warm-500 dark:text-neutral-400 max-w-2xl mx-auto">
               We track what actually matters for your long-term health.
             </p>
           </RevealOnScroll>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
             {[
               {
                 icon: Droplets,
                 title: 'Plastic Exposure',
                 description: 'Track how often you drink from plastic bottles—a metric linked to microplastic consumption.',
-                color: 'bg-blue-100',
-                iconColor: 'text-blue-600'
+                color: 'bg-blue-100 dark:bg-blue-900/30',
+                iconColor: 'text-blue-600 dark:text-blue-400'
               },
               {
                 icon: Beef,
                 title: 'Processed Meat',
                 description: 'Monitor your processed meat intake, a WHO Group 1 carcinogen when consumed frequently.',
-                color: 'bg-rose-100',
-                iconColor: 'text-rose-600'
+                color: 'bg-rose-100 dark:bg-rose-900/30',
+                iconColor: 'text-rose-600 dark:text-rose-400'
               },
               {
                 icon: Moon,
                 title: 'Late Night Eating',
                 description: 'See how often you eat after 9pm—linked to metabolic issues and poor sleep quality.',
-                color: 'bg-violet-100',
-                iconColor: 'text-violet-600'
+                color: 'bg-violet-100 dark:bg-violet-900/30',
+                iconColor: 'text-violet-600 dark:text-violet-400'
               },
               {
                 icon: Clock,
                 title: 'Meal Timing',
                 description: 'Understand your eating patterns and their impact on circadian rhythm.',
-                color: 'bg-amber-100',
-                iconColor: 'text-amber-600'
+                color: 'bg-amber-100 dark:bg-amber-900/30',
+                iconColor: 'text-amber-600 dark:text-amber-400'
               },
               {
                 icon: Activity,
                 title: 'Pattern Detection',
                 description: 'AI spots correlations between your diet and how you feel over time.',
-                color: 'bg-emerald-100',
-                iconColor: 'text-emerald-600'
+                color: 'bg-emerald-100 dark:bg-emerald-900/30',
+                iconColor: 'text-emerald-600 dark:text-emerald-400'
               },
               {
                 icon: ShieldCheck,
                 title: 'Privacy First',
                 description: 'Your data stays on your device. We never sell or share your information.',
-                color: 'bg-sage-100',
-                iconColor: 'text-sage-600'
+                color: 'bg-sage-100 dark:bg-sage-900/30',
+                iconColor: 'text-sage-600 dark:text-sage-400'
               }
             ].map((feature, i) => (
               <RevealOnScroll key={i} delay={i * 0.1}>
-                <motion.div 
-                  className="p-8 bg-white rounded-3xl border border-warm-100 h-full"
-                  whileHover={{ y: -4, boxShadow: '0 20px 40px -12px rgba(0,0,0,0.08)' }}
+                <motion.div
+                  className="p-8 bg-white dark:bg-neutral-900 rounded-3xl border border-warm-100 dark:border-neutral-800 h-full"
+                  whileHover={{ y: -2, boxShadow: '0 16px 32px -8px rgba(0,0,0,0.06)' }}
                 >
-                  <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-6`}>
-                    <feature.icon className={`w-7 h-7 ${feature.iconColor}`} />
+                  <div className={`w-16 h-16 ${feature.color} rounded-2xl flex items-center justify-center mb-6`}>
+                    <feature.icon className={`w-8 h-8 ${feature.iconColor}`} />
                   </div>
-                  <h3 className="text-xl font-bold text-warm-900 mb-3">{feature.title}</h3>
-                  <p className="text-warm-600 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl font-bold text-warm-900 dark:text-neutral-100 mb-3">{feature.title}</h3>
+                  <p className="text-warm-600 dark:text-neutral-400 leading-relaxed">{feature.description}</p>
                 </motion.div>
               </RevealOnScroll>
             ))}
@@ -1151,40 +1149,40 @@ export default function LandingPage() {
       <section className="py-32 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <RevealOnScroll>
-            <motion.div 
-              className="bg-gradient-to-br from-warm-50 to-sage-50 rounded-[40px] p-12 md:p-20 relative overflow-hidden"
+            <motion.div
+              className="bg-gradient-to-br from-warm-50 to-sage-50 dark:from-neutral-900 dark:to-neutral-800 rounded-[40px] p-12 md:p-20 relative overflow-hidden border border-transparent dark:border-neutral-800"
               whileHover={{ boxShadow: '0 40px 80px -20px rgba(0,0,0,0.1)' }}
             >
               {/* Decorative elements */}
-              <div className="absolute top-8 right-8 w-24 h-24 bg-sage-200/50 rounded-full blur-2xl" />
-              <div className="absolute bottom-8 left-8 w-32 h-32 bg-blue-200/50 rounded-full blur-2xl" />
-              
+              <div className="absolute top-8 right-8 w-24 h-24 bg-sage-200/50 dark:bg-sage-900/30 rounded-full blur-2xl" />
+              <div className="absolute bottom-8 left-8 w-32 h-32 bg-blue-200/50 dark:bg-blue-900/30 rounded-full blur-2xl" />
+
               <div className="relative z-10">
-                <motion.div 
+                <motion.div
                   className="w-20 h-20 bg-gradient-to-br from-sage-500 to-sage-700 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-sage-500/25"
                   whileHover={{ rotate: 10, scale: 1.05 }}
                 >
                   <Heart className="w-10 h-10 text-white" />
                 </motion.div>
-                
-                <h2 className="text-display text-4xl md:text-5xl text-warm-900 mb-6">
+
+                <h2 className="text-display text-4xl md:text-5xl text-warm-900 dark:text-neutral-100 mb-6">
                   Start building your health history
                 </h2>
-                <p className="text-xl text-warm-600 mb-10 max-w-xl mx-auto">
-                  Join thousands who are passively building a dietary record they'll thank themselves for later.
+                <p className="text-xl text-warm-600 dark:text-neutral-400 mb-10 max-w-xl mx-auto">
+                  Join thousands who are passively building a dietary record they&apos;ll thank themselves for later.
                 </p>
-                
+
                 <MagneticWrapper className="inline-block">
                   <Link
                     href="/login"
                     className="group inline-flex items-center gap-3 px-10 py-5 bg-sage-600 text-white rounded-2xl font-semibold text-lg shadow-xl shadow-sage-600/25 hover:bg-sage-700 transition-all"
                   >
-                    Get started — it's free
+                    Get started — it&apos;s free
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </MagneticWrapper>
-                
-                <p className="text-warm-500 text-sm mt-6">No credit card required</p>
+
+                <p className="text-warm-500 dark:text-neutral-500 text-sm mt-6">No credit card required</p>
               </div>
             </motion.div>
           </RevealOnScroll>
@@ -1192,19 +1190,19 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-warm-200">
+      <footer className="py-12 px-6 border-t border-warm-200 dark:border-neutral-800">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-sage-500 to-sage-700 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">DB</span>
               </div>
-              <span className="text-warm-600">Dietary Black Box</span>
+              <span className="text-warm-600 dark:text-neutral-400">Dietary Black Box</span>
             </div>
-            
-            <div className="flex items-center gap-8 text-sm text-warm-500">
-              <Link href="/login" className="hover:text-warm-700 transition-colors">Get Started</Link>
-              <a href="#how-it-works" className="hover:text-warm-700 transition-colors">How It Works</a>
+
+            <div className="flex items-center gap-8 text-sm text-warm-500 dark:text-neutral-500">
+              <Link href="/login" className="hover:text-warm-700 dark:hover:text-neutral-300 transition-colors">Get Started</Link>
+              <a href="#how-it-works" className="hover:text-warm-700 dark:hover:text-neutral-300 transition-colors">How It Works</a>
               <span>© 2025</span>
             </div>
           </div>

@@ -10,7 +10,7 @@ export default function AppLayout({
 }) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#fafaf9]">
+      <div className="min-h-screen bg-[#fafaf9] dark:bg-neutral-950 transition-colors duration-300">
         <Navigation />
         <main className="pb-24 md:pb-8">
           {children}

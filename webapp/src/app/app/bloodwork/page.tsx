@@ -4,13 +4,25 @@ import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { analyzeBloodWork, generateCorrelations } from '@/services/insights';
 import { BloodWork } from '@/types';
-import { AlertTriangle, TrendingUp, TrendingDown, ArrowRight, Edit2 } from 'lucide-react';
+import { AlertTriangle, TrendingUp, TrendingDown, ArrowRight, Edit2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+
+// Validation ranges for blood work values
+const VALIDATION_RANGES = {
+  totalCholesterol: { min: 50, max: 500, label: 'Total Cholesterol' },
+  ldl: { min: 20, max: 300, label: 'LDL Cholesterol' },
+  hdl: { min: 10, max: 150, label: 'HDL Cholesterol' },
+  triglycerides: { min: 20, max: 1000, label: 'Triglycerides' },
+  fastingGlucose: { min: 40, max: 400, label: 'Fasting Glucose' },
+};
+
+type ValidationErrors = Partial<Record<keyof typeof VALIDATION_RANGES | 'testDate', string>>;
 
 export default function BloodWorkPage() {
   const { bloodWork, setBloodWork, insights, meals } = useApp();
   const [isEditing, setIsEditing] = useState(!bloodWork);
-  
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
   const [formData, setFormData] = useState({
     testDate: bloodWork?.testDate.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
     totalCholesterol: bloodWork?.totalCholesterol?.toString() || '',
@@ -20,9 +32,44 @@ export default function BloodWorkPage() {
     fastingGlucose: bloodWork?.fastingGlucose?.toString() || '',
   });
 
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+
+    // Validate test date
+    const testDate = new Date(formData.testDate);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    if (isNaN(testDate.getTime())) {
+      newErrors.testDate = 'Please enter a valid date';
+    } else if (testDate > today) {
+      newErrors.testDate = 'Test date cannot be in the future';
+    }
+
+    // Validate each blood work value
+    for (const [key, range] of Object.entries(VALIDATION_RANGES)) {
+      const value = formData[key as keyof typeof formData];
+      if (value) {
+        const numValue = parseInt(value);
+        if (isNaN(numValue)) {
+          newErrors[key as keyof typeof VALIDATION_RANGES] = 'Please enter a valid number';
+        } else if (numValue < range.min || numValue > range.max) {
+          newErrors[key as keyof typeof VALIDATION_RANGES] = `Value must be between ${range.min} and ${range.max}`;
+        }
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!validateForm()) {
+      return;
+    }
+
     const newBloodWork: BloodWork = {
       id: `blood_${Date.now()}`,
       testDate: new Date(formData.testDate),
@@ -32,9 +79,10 @@ export default function BloodWorkPage() {
       triglycerides: parseInt(formData.triglycerides) || 0,
       fastingGlucose: parseInt(formData.fastingGlucose) || 0,
     };
-    
+
     setBloodWork(newBloodWork);
     setIsEditing(false);
+    setErrors({});
   };
 
   const handleChange = (field: string, value: string) => {
@@ -79,37 +127,54 @@ export default function BloodWorkPage() {
               type="date"
               value={formData.testDate}
               onChange={(e) => handleChange('testDate', e.target.value)}
-              className="input"
+              className={`input ${errors.testDate ? 'border-rose-300 focus:border-rose-500' : ''}`}
+              max={new Date().toISOString().split('T')[0]}
               required
             />
-          </div>
-          
-          {Object.entries(ranges).map(([key, range]) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-warm-700 mb-2">
-                {range.label}
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={formData[key as keyof typeof formData]}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                  placeholder={`e.g., ${range.optimal}`}
-                  className="input pr-16"
-                  min="0"
-                  max="1000"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-warm-400">
-                  {range.unit}
-                </span>
-              </div>
-              <p className="text-xs text-warm-400 mt-1.5">
-                {key === 'hdl' 
-                  ? `Higher is better • Optimal: >${range.optimal}` 
-                  : `Lower is better • Optimal: <${range.optimal}`}
+            {errors.testDate && (
+              <p className="text-xs text-rose-600 mt-1.5 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {errors.testDate}
               </p>
-            </div>
-          ))}
+            )}
+          </div>
+
+          {Object.entries(ranges).map(([key, range]) => {
+            const error = errors[key as keyof typeof errors];
+            return (
+              <div key={key}>
+                <label className="block text-sm font-medium text-warm-700 mb-2">
+                  {range.label}
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={formData[key as keyof typeof formData]}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    placeholder={`e.g., ${range.optimal}`}
+                    className={`input pr-16 ${error ? 'border-rose-300 focus:border-rose-500' : ''}`}
+                    min="0"
+                    max="1000"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-warm-400">
+                    {range.unit}
+                  </span>
+                </div>
+                {error ? (
+                  <p className="text-xs text-rose-600 mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {error}
+                  </p>
+                ) : (
+                  <p className="text-xs text-warm-400 mt-1.5">
+                    {key === 'hdl'
+                      ? `Higher is better • Optimal: >${range.optimal}`
+                      : `Lower is better • Optimal: <${range.optimal}`}
+                  </p>
+                )}
+              </div>
+            );
+          })}
           
           <div className="flex gap-3 pt-6">
             <button type="submit" className="btn btn-primary flex-1 btn-lg">

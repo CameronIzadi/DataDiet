@@ -77,7 +77,7 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
     if (!loading && !user) {
       // Store the attempted URL for redirect after login
       sessionStorage.setItem('redirectAfterLogin', pathname);
-      router.push('/');
+      router.push('/login');
     }
   }, [user, loading, router, pathname]);
 

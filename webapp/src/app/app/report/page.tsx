@@ -3,7 +3,8 @@
 import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { generateDoctorReport } from '@/services/gemini';
-import { FileText, Loader2, Download, RefreshCw, Printer, Sparkles, ArrowRight } from 'lucide-react';
+import { markdownToSafeHTML, markdownToDownloadHTML } from '@/lib/sanitize';
+import { FileText, Loader2, Download, RefreshCw, Printer, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ReportPage() {
@@ -99,7 +100,7 @@ export default function ReportPage() {
     </div>
   </div>
   
-  ${report.replace(/## /g, '<h2>').replace(/### /g, '<h3>').replace(/\*\*/g, '').replace(/\n- /g, '<br>• ')}
+  ${markdownToDownloadHTML(report)}
   
   <div class="footer">
     <p>This report was generated from patient-logged dietary data and AI pattern analysis.</p>
@@ -222,10 +223,9 @@ export default function ReportPage() {
               <FileText className="w-5 h-5" />
               <span className="font-medium">No blood work added yet</span>
             </div>
-            <Link href="/app/bloodwork" className="text-sm font-medium text-amber-700 hover:text-amber-800 flex items-center gap-1">
-              Add blood work
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <span className="text-sm text-amber-600">
+              Blood work input coming soon
+            </span>
           </div>
         </div>
       )}
@@ -283,15 +283,10 @@ export default function ReportPage() {
             </div>
           </div>
           
-          <div 
+          <div
             className="prose prose-warm max-w-none prose-headings:text-warm-800 prose-p:text-warm-600 prose-li:text-warm-600"
-            dangerouslySetInnerHTML={{ 
-              __html: report
-                .replace(/## /g, '<h2 class="text-lg font-semibold mt-8 mb-4">')
-                .replace(/### /g, '<h3 class="text-base font-medium mt-6 mb-3">')
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-warm-800">$1</strong>')
-                .replace(/- (.*?)(?=\n|$)/g, '<li class="ml-4 mb-2">$1</li>')
-                .replace(/\n\n/g, '</p><p class="mb-4">')
+            dangerouslySetInnerHTML={{
+              __html: markdownToSafeHTML(report)
             }}
           />
           
