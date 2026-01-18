@@ -1,0 +1,242 @@
+{
+  "meals": [
+    {
+      "id": "meal_001",
+      "logged_at": "2025-01-02T08:15:00Z",
+      "foods": [
+        {"name": "Scrambled eggs", "portion": "2 eggs"},
+        {"name": "Toast", "portion": "2 slices"},
+        {"name": "Orange juice", "portion": "8 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["plastic_bottle"]
+    },
+    {
+      "id": "meal_002",
+      "logged_at": "2025-01-02T12:30:00Z",
+      "foods": [
+        {"name": "Turkey sandwich", "portion": "1 sandwich"},
+        {"name": "Chips", "portion": "1 bag"},
+        {"name": "Bottled water", "portion": "16 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["plastic_bottle"]
+    },
+    {
+      "id": "meal_003",
+      "logged_at": "2025-01-02T21:45:00Z",
+      "foods": [
+        {"name": "Pepperoni pizza", "portion": "3 slices"},
+        {"name": "Soda", "portion": "12 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["late_meal", "processed_meat", "plastic_bottle"]
+    },
+    {
+      "id": "meal_004",
+      "logged_at": "2025-01-03T07:30:00Z",
+      "foods": [
+        {"name": "Bacon", "portion": "4 strips"},
+        {"name": "Pancakes", "portion": "3 pancakes"},
+        {"name": "Coffee", "portion": "12 oz"}
+      ],
+      "flags": ["processed_meat"]
+    },
+    {
+      "id": "meal_005",
+      "logged_at": "2025-01-03T13:00:00Z",
+      "foods": [
+        {"name": "Caesar salad", "portion": "1 bowl"},
+        {"name": "Grilled chicken", "portion": "4 oz"},
+        {"name": "Iced tea", "portion": "16 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["plastic_bottle"]
+    },
+    {
+      "id": "meal_006",
+      "logged_at": "2025-01-03T22:00:00Z",
+      "foods": [
+        {"name": "Burger", "portion": "1 burger"},
+        {"name": "French fries", "portion": "large"},
+        {"name": "Milkshake", "portion": "16 oz"}
+      ],
+      "flags": ["late_meal", "high_sodium"]
+    },
+    {
+      "id": "meal_007",
+      "logged_at": "2025-01-04T09:00:00Z",
+      "foods": [
+        {"name": "Oatmeal", "portion": "1 bowl"},
+        {"name": "Banana", "portion": "1 medium"},
+        {"name": "Green tea", "portion": "8 oz"}
+      ],
+      "flags": []
+    },
+    {
+      "id": "meal_008",
+      "logged_at": "2025-01-04T12:15:00Z",
+      "foods": [
+        {"name": "Hot dog", "portion": "2 hot dogs"},
+        {"name": "Coleslaw", "portion": "1 cup"},
+        {"name": "Lemonade", "portion": "12 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["processed_meat", "plastic_bottle"]
+    },
+    {
+      "id": "meal_009",
+      "logged_at": "2025-01-04T19:30:00Z",
+      "foods": [
+        {"name": "Grilled salmon", "portion": "6 oz"},
+        {"name": "Steamed broccoli", "portion": "1 cup"},
+        {"name": "Brown rice", "portion": "1 cup"},
+        {"name": "Water", "portion": "12 oz", "container": "glass"}
+      ],
+      "flags": []
+    },
+    {
+      "id": "meal_010",
+      "logged_at": "2025-01-05T08:00:00Z",
+      "foods": [
+        {"name": "Greek yogurt", "portion": "1 cup"},
+        {"name": "Granola", "portion": "1/2 cup"},
+        {"name": "Berries", "portion": "1/2 cup"}
+      ],
+      "flags": []
+    },
+    {
+      "id": "meal_011",
+      "logged_at": "2025-01-05T13:30:00Z",
+      "foods": [
+        {"name": "Ham sandwich", "portion": "1 sandwich"},
+        {"name": "Apple", "portion": "1 medium"},
+        {"name": "Bottled water", "portion": "16 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["processed_meat", "plastic_bottle"]
+    },
+    {
+      "id": "meal_012",
+      "logged_at": "2025-01-05T21:30:00Z",
+      "foods": [
+        {"name": "Pasta with meat sauce", "portion": "2 cups"},
+        {"name": "Garlic bread", "portion": "2 slices"},
+        {"name": "Red wine", "portion": "5 oz"}
+      ],
+      "flags": ["late_meal"]
+    },
+    {
+      "id": "meal_013",
+      "logged_at": "2025-01-06T10:00:00Z",
+      "foods": [
+        {"name": "Breakfast burrito", "portion": "1 large"},
+        {"name": "Salsa", "portion": "2 tbsp"},
+        {"name": "Orange juice", "portion": "8 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["plastic_bottle"]
+    },
+    {
+      "id": "meal_014",
+      "logged_at": "2025-01-06T14:00:00Z",
+      "foods": [
+        {"name": "Sushi roll", "portion": "8 pieces"},
+        {"name": "Miso soup", "portion": "1 bowl"},
+        {"name": "Green tea", "portion": "8 oz"}
+      ],
+      "flags": []
+    },
+    {
+      "id": "meal_015",
+      "logged_at": "2025-01-06T20:00:00Z",
+      "foods": [
+        {"name": "Steak", "portion": "8 oz"},
+        {"name": "Baked potato", "portion": "1 large"},
+        {"name": "Caesar salad", "portion": "1 side"}
+      ],
+      "flags": []
+    },
+    {
+      "id": "meal_016",
+      "logged_at": "2025-01-07T07:45:00Z",
+      "foods": [
+        {"name": "Sausage links", "portion": "3 links"},
+        {"name": "Hash browns", "portion": "1 cup"},
+        {"name": "Coffee", "portion": "12 oz"}
+      ],
+      "flags": ["processed_meat"]
+    },
+    {
+      "id": "meal_017",
+      "logged_at": "2025-01-07T12:00:00Z",
+      "foods": [
+        {"name": "Chicken wrap", "portion": "1 wrap"},
+        {"name": "Side salad", "portion": "1 small"},
+        {"name": "Diet soda", "portion": "12 oz", "container": "plastic_bottle"}
+      ],
+      "flags": ["plastic_bottle"]
+    },
+    {
+      "id": "meal_018",
+      "logged_at": "2025-01-07T22:15:00Z",
+      "foods": [
+        {"name": "Frozen pizza", "portion": "4 slices"},
+        {"name": "Beer", "portion": "12 oz"}
+      ],
+      "flags": ["late_meal", "ultra_processed"]
+    }
+  ],
+  "summary_stats": {
+    "total_meals": 18,
+    "date_range": "2025-01-02 to 2025-01-07",
+    "plastic_bottle_count": 10,
+    "processed_meat_count": 6,
+    "late_meals_count": 5,
+    "late_meal_percentage": 27.8,
+    "meals_after_9pm": 5,
+    "average_meal_time": "14:32",
+    "weekend_vs_weekday_pattern": "More late meals on weekends"
+  },
+  "insights": {
+    "plastic_exposure": {
+      "count": 10,
+      "frequency": "1.67 per day",
+      "concern_level": "moderate",
+      "message": "You consumed beverages from single-use plastic bottles 10 times in 6 days. Consider switching to reusable bottles to reduce microplastic exposure."
+    },
+    "processed_meat": {
+      "count": 6,
+      "weekly_average": 7,
+      "concern_level": "elevated",
+      "message": "Processed meat consumption (bacon, sausage, hot dogs, pepperoni, ham) averaged 7 servings per week. WHO classifies processed meat as a Group 1 carcinogen."
+    },
+    "meal_timing": {
+      "late_meals_percent": 27.8,
+      "average_dinner_time": "21:06",
+      "concern_level": "moderate",
+      "message": "28% of meals were consumed after 9pm. Late eating is associated with disrupted sleep patterns and metabolic issues."
+    },
+    "weekend_pattern": {
+      "observation": "Late meals cluster on Friday-Saturday",
+      "message": "Weekend eating patterns show later meal times and higher processed food consumption."
+    }
+  },
+  "blood_work_sample": {
+    "test_date": "2025-01-10",
+    "results": {
+      "total_cholesterol": 242,
+      "ldl": 158,
+      "hdl": 42,
+      "triglycerides": 210,
+      "fasting_glucose": 108,
+      "sodium": 142,
+      "potassium": 4.1
+    },
+    "flags": {
+      "total_cholesterol": "high",
+      "ldl": "high",
+      "hdl": "low",
+      "triglycerides": "high",
+      "fasting_glucose": "borderline"
+    },
+    "potential_dietary_correlations": [
+      "High processed meat consumption may contribute to elevated LDL cholesterol",
+      "Late-night eating patterns associated with elevated triglycerides",
+      "Weekend eating patterns (higher sodium, saturated fat) may impact cholesterol levels"
+    ]
+  }
+}

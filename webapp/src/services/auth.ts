@@ -2,10 +2,10 @@
 // Supports both Google OAuth and Email/Password authentication
 // Uses the same Firebase project as mobile for shared user accounts
 
-import { 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut, 
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -14,7 +14,8 @@ import {
   User,
   UserCredential
 } from 'firebase/auth';
-import { auth, isFirebaseConfigured } from '@/lib/firebaseClient';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db, isFirebaseConfigured } from '@/lib/firebaseClient';
 
 let googleProvider: GoogleAuthProvider | null = null;
 
@@ -107,6 +108,108 @@ export async function registerWithEmail(
     }
     
     throw new Error('Failed to create account');
+  }
+}
+
+// ============================================
+// Doctor Registration
+// ============================================
+
+export interface DoctorRegistrationData {
+  npiNumber: string;
+  licenseNumber: string;
+  licenseState: string;
+  specialty: string;
+  practiceName: string;
+  practiceAddress: string;
+  yearsOfExperience: string;
+  medicalSchool: string;
+}
+
+/**
+ * Register a doctor with verification data
+ */
+export async function registerDoctor(
+  email: string,
+  password: string,
+  displayName: string,
+  doctorData: DoctorRegistrationData
+): Promise<User> {
+  if (!auth || !db) {
+    throw new Error('Firebase is not configured. Please add your Firebase credentials to .env.local');
+  }
+
+  try {
+    // Create the user account
+    const result: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+    // Update display name
+    if (displayName && result.user) {
+      await updateProfile(result.user, { displayName });
+    }
+
+    // Store doctor verification data in Firestore
+    await setDoc(doc(db, 'doctors', result.user.uid), {
+      uid: result.user.uid,
+      email: email,
+      displayName: displayName,
+      role: 'doctor',
+      verificationStatus: 'pending', // pending, verified, rejected
+      ...doctorData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    // Also update the user's role in a users collection
+    await setDoc(doc(db, 'users', result.user.uid), {
+      uid: result.user.uid,
+      email: email,
+      displayName: displayName,
+      role: 'doctor',
+      createdAt: serverTimestamp(),
+    });
+
+    return result.user;
+  } catch (error: any) {
+    const expectedErrors = [
+      'auth/email-already-in-use',
+      'auth/invalid-email',
+      'auth/weak-password'
+    ];
+
+    if (!expectedErrors.includes(error.code)) {
+      console.error('Doctor registration error:', error);
+    }
+
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('An account with this email already exists');
+    }
+    if (error.code === 'auth/invalid-email') {
+      throw new Error('Invalid email address');
+    }
+    if (error.code === 'auth/weak-password') {
+      throw new Error('Password should be at least 6 characters');
+    }
+
+    throw new Error('Failed to create doctor account');
+  }
+}
+
+/**
+ * Get user role from Firestore
+ */
+export async function getUserRole(uid: string): Promise<'user' | 'doctor' | null> {
+  if (!db) return null;
+
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      return userDoc.data().role || 'user';
+    }
+    return 'user'; // Default to user if no document exists
+  } catch (error) {
+    console.error('Error getting user role:', error);
+    return null;
   }
 }
 

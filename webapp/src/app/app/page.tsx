@@ -673,30 +673,16 @@ export default function AppDashboard() {
             ))}
           </motion.div>
 
-          {/* More Insights Toggle */}
-          <motion.button
-            onClick={() => setShowMoreStats(!showMoreStats)}
-            className="w-full flex items-center justify-center gap-2 py-3 mb-4 text-sm font-medium text-warm-500 dark:text-neutral-400 hover:text-warm-700 dark:hover:text-neutral-200 transition-colors"
-            variants={itemVariants}
-          >
-            <span>{showMoreStats ? 'Hide' : 'Show'} More Insights</span>
-            <motion.div
-              animate={{ rotate: showMoreStats ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChevronDown className="w-4 h-4" />
-            </motion.div>
-          </motion.button>
-
-          {/* Secondary Stats - Expandable */}
+          {/* Secondary Stats - Expandable (appears above the toggle button) */}
           <AnimatePresence>
             {showMoreStats && (
               <motion.div
-                className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4"
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                 transition={{ duration: 0.3 }}
+                style={{ overflow: 'hidden' }}
               >
                 {[
                   {
@@ -759,6 +745,21 @@ export default function AppDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* More Insights Toggle - positioned AFTER expandable content so it moves down */}
+          <motion.button
+            onClick={() => setShowMoreStats(!showMoreStats)}
+            className="w-full flex items-center justify-center gap-2 py-3 mb-8 text-sm font-medium text-warm-500 dark:text-neutral-400 hover:text-warm-700 dark:hover:text-neutral-200 transition-colors"
+            variants={itemVariants}
+          >
+            <span>{showMoreStats ? 'Hide' : 'Show'} More Insights</span>
+            <motion.div
+              animate={{ rotate: showMoreStats ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="w-4 h-4" />
+            </motion.div>
+          </motion.button>
         </>
       )}
 

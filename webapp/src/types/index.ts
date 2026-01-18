@@ -100,3 +100,75 @@ export interface User {
   createdAt: Date;
 }
 
+// ============================================
+// Doctor-Patient Connection & Messaging Types
+// ============================================
+
+export type ConnectionStatus = 'active' | 'ended';
+
+export interface DoctorProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: 'doctor';
+  verificationStatus: 'pending' | 'verified' | 'rejected';
+  npiNumber: string;
+  licenseNumber: string;
+  licenseState: string;
+  specialty: string;
+  practiceName: string;
+  practiceAddress: string;
+  yearsOfExperience: string;
+  medicalSchool: string;
+  photoURL?: string;
+  createdAt: Date;
+  // Auto-pairing fields
+  acceptingNewPatients: boolean;
+  maxPatients: number;
+  currentPatientCount: number;
+  bio?: string; // Short intro message
+}
+
+export interface Connection {
+  id: string;
+  doctorId: string;
+  patientId: string;
+  status: ConnectionStatus;
+  assignedAt: Date;
+  assignedBy: 'system' | 'manual';
+  // Denormalized for easier queries
+  doctorName: string;
+  doctorSpecialty: string;
+  doctorPhotoURL?: string;
+  doctorBio?: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhotoURL?: string;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: 'doctor' | 'patient';
+  text: string;
+  timestamp: Date;
+  read: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  doctorId: string;
+  patientId: string;
+  doctorName: string;
+  patientName: string;
+  doctorPhotoURL?: string;
+  patientPhotoURL?: string;
+  doctorSpecialty?: string;
+  lastMessage?: string;
+  lastMessageAt?: Date;
+  unreadCount: number;
+  createdAt: Date;
+}
+
