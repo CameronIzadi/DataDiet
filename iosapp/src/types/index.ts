@@ -21,6 +21,7 @@ export interface Meal {
   nutrition?: Nutrition;
   flags: string[];
   status?: 'pending' | 'completed' | 'failed';
+  errorMessage?: string;
   metadata?: {
     location?: string;
     source: 'phone_photo' | 'gallery' | 'manual';

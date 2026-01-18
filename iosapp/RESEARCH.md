@@ -239,15 +239,148 @@ This document outlines the scientific research and health guidelines that inform
 
 ## Average American Diet Statistics
 
-For context, here's what the average American diet looks like:
+### Overview
 
-| Metric | Average | Recommended |
-|--------|---------|-------------|
-| Ultra-processed foods | 55% of calories | <30% |
-| Sodium intake | 3,400mg/day | <2,300mg |
-| Processed meat | Multiple times/week | Avoid or <3/week |
-| Sugar-sweetened beverages | Daily | Minimize |
-| Late night eating | Common | Avoid eating 3hrs before bed |
+The Standard American Diet (SAD) is characterized by high consumption of processed foods, red meat, sugary beverages, refined grains, and low intake of fruits, vegetables, and whole grains. This dietary pattern has been linked to the high rates of obesity, heart disease, diabetes, and cancer in the United States.
+
+### Daily Caloric Intake
+
+**Research Findings:**
+- Average American consumes **3,600+ calories per day** (food supply data)
+- Self-reported intake: ~2,100 calories/day (likely underreported)
+- Recommended: 2,000-2,500 calories depending on activity level
+- 36% of daily calories come from restaurants and fast food
+
+### Meal Patterns
+
+**Typical American Eating Schedule:**
+- **Breakfast (7-9am):** Often skipped (25% skip), or quick options like cereal, toast, eggs/bacon, coffee
+- **Lunch (11:30am-1:30pm):** Fast food, sandwiches, leftovers; average spend ~$10-15
+- **Dinner (6-8pm):** Largest meal; often includes meat, starch, minimal vegetables
+- **Snacks:** 2-3 snacks per day, contributing 20-25% of daily calories
+
+**Eating Frequency:**
+- Americans eat an average of **4.2 eating occasions per day**
+- 90% of Americans snack daily
+- Snacking accounts for ~500-600 calories per day
+- Late-night eating is common (after 8pm) in 30-40% of population
+
+### Macronutrient Breakdown
+
+| Nutrient | Average American | Recommended |
+|----------|------------------|-------------|
+| Carbohydrates | 50% of calories | 45-65% |
+| Fat | 33% of calories | 20-35% |
+| Protein | 16% of calories | 10-35% |
+| Added sugars | 13% of calories (~270 cal) | <10% (<200 cal) |
+| Saturated fat | 11% of calories | <10% |
+| Fiber | 15g/day | 25-38g/day |
+
+### Common Foods in the American Diet
+
+**Most Frequently Consumed Foods:**
+1. Sandwiches (consumed by 47% of adults on any given day)
+2. Coffee/tea
+3. Soft drinks and sweetened beverages
+4. Pizza (consumed by 13% of Americans on any given day)
+5. Chicken dishes
+6. Mexican-style dishes (burritos, tacos)
+7. French fries and other fried potatoes
+8. Pasta dishes
+9. Burgers
+10. Ice cream and frozen desserts
+
+**Weekly Consumption Patterns:**
+- Fast food: 3-4 times per week (average American)
+- Pizza: 1-2 times per week
+- Processed meat: 3-5 times per week
+- Fried foods: 3-4 times per week
+- Sugary beverages: 5-7 times per week (63% drink daily)
+- Alcohol: 4-5 drinks per week (among drinkers)
+
+### Beverage Consumption
+
+**Daily Beverage Intake:**
+- Coffee: 64% of Americans drink daily (avg 3 cups)
+- Soft drinks: 63% consume sugary drinks daily
+- Water: Average 4 cups per day (below recommended 8 cups)
+- Alcohol: 55% drink at least monthly; avg 4 drinks/week among drinkers
+- Energy drinks: 30% of adults consume monthly
+
+**Sugary Beverage Statistics:**
+- Americans consume **40+ gallons of soda per person annually**
+- Average 17 teaspoons of added sugar daily from beverages alone
+- Sugary drinks are the #1 source of added sugars in American diet
+
+### Processed Food Consumption
+
+**Ultra-Processed Foods (UPF):**
+- **55-60% of American calories** come from ultra-processed foods
+- Children and teens: up to 67% of calories from UPF
+- Only 30% of the American diet is "minimally processed"
+
+**Common Ultra-Processed Foods in American Diet:**
+- Packaged snacks (chips, crackers, cookies)
+- Breakfast cereals
+- Frozen meals and pizza
+- Hot dogs, chicken nuggets, fish sticks
+- Instant noodles and soups
+- Soft drinks and energy drinks
+- Packaged breads and baked goods
+- Fast food items
+
+### Restaurant and Fast Food
+
+**Frequency:**
+- Average American eats out **5-6 times per week**
+- Fast food specifically: 3-4 times per week
+- 37% of Americans eat fast food on any given day
+- Average fast food meal: 836 calories
+
+**Most Popular Fast Food Chains (by visits):**
+1. McDonald's
+2. Starbucks
+3. Chick-fil-A
+4. Taco Bell
+5. Wendy's
+
+### Nutritional Deficiencies
+
+**Nutrients Americans Under-Consume:**
+- Fiber: Average 15g vs. recommended 25-38g
+- Potassium: Average 2,600mg vs. recommended 4,700mg
+- Calcium: 30% of Americans deficient
+- Vitamin D: 42% of Americans deficient
+- Vegetables: Only 10% meet recommended intake
+- Fruits: Only 12% meet recommended intake
+
+**Nutrients Americans Over-Consume:**
+- Sodium: 3,400mg vs. recommended 2,300mg (48% over)
+- Added sugars: 270 calories vs. recommended 200 (35% over)
+- Saturated fat: 11% vs. recommended 10% of calories
+
+### Comparison Table
+
+| Metric | Average American | Recommended | % Over/Under |
+|--------|------------------|-------------|--------------|
+| Calories | 3,600/day | 2,000-2,500 | +44-80% |
+| Sodium | 3,400mg/day | <2,300mg | +48% |
+| Added sugar | 17 tsp/day | <12 tsp | +42% |
+| Fiber | 15g/day | 25-38g | -50% |
+| Fruits/Vegetables | 2-3 servings | 5-9 servings | -50% |
+| Ultra-processed | 55% of diet | <30% | +83% |
+| Processed meat | 3-5x/week | <2x/week | +100% |
+| Fast food | 3-4x/week | Occasionally | +200% |
+| Water | 4 cups/day | 8 cups | -50% |
+
+### Sources
+
+- [CDC NHANES Dietary Data](https://www.cdc.gov/nchs/nhanes/)
+- [USDA Dietary Guidelines for Americans 2020-2025](https://www.dietaryguidelines.gov/)
+- [Harvard School of Public Health: Nutrition Source](https://www.hsph.harvard.edu/nutritionsource/)
+- [CDC: Adults Meeting Fruit and Vegetable Recommendations](https://www.cdc.gov/mmwr/volumes/71/wr/mm7101a1.htm)
+- [Journal of the Academy of Nutrition and Dietetics: UPF Consumption](https://jandonline.org/)
+- [NPD Group: Eating Patterns in America](https://www.npd.com/)
 
 ---
 

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -18,6 +19,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 import { useOnboarding } from '../../context/OnboardingContext';
+import { useAuth } from '../../context/AuthContext';
 import { StepIndicator } from '../../components/StepIndicator';
 import { Button } from '../../components/Button';
 import { haptics } from '../../utils/haptics';
@@ -30,7 +32,13 @@ interface Props {
 export default function NameScreen({ navigation }: Props) {
   const { colors, gradients } = useTheme();
   const { data, setField } = useOnboarding();
+  const { isAuthenticated, completeOnboarding } = useAuth();
   const [name, setName] = useState(data.name || '');
+
+  const handleSkip = async () => {
+    haptics.light();
+    await completeOnboarding();
+  };
   const inputRef = useRef<TextInput>(null);
 
   const contentOpacity = useSharedValue(0);
@@ -85,11 +93,18 @@ export default function NameScreen({ navigation }: Props) {
   return (
     <LinearGradient colors={gradients.hero} style={styles.container}>
       <SafeAreaView style={styles.safe}>
-        <StepIndicator
-          currentStep={1}
-          totalSteps={6}
-          onBack={() => navigation.goBack()}
-        />
+        <View style={styles.headerRow}>
+          <StepIndicator
+            currentStep={1}
+            totalSteps={6}
+            onBack={() => navigation.goBack()}
+          />
+          {isAuthenticated && (
+            <Pressable onPress={handleSkip} style={styles.skipButton}>
+              <Text style={[styles.skipText, { color: colors.primary }]}>Skip</Text>
+            </Pressable>
+          )}
+        </View>
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -139,6 +154,20 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingRight: SPACING.lg,
+  },
+  skipButton: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+  },
+  skipText: {
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.sizes.bodyMedium,
   },
   keyboardView: {
     flex: 1,
