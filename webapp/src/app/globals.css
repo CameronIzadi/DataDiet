@@ -895,13 +895,27 @@ body {
   body {
     background: white;
   }
-  
+
   .card, .card-elevated {
     box-shadow: none;
     border: 1px solid #e5e5e5;
   }
-  
+
   nav, .btn, button {
     display: none !important;
+  }
+}
+
+/* ============================================
+   PREMIUM ANIMATIONS
+   ============================================ */
+
+/* Gradient text animation for hero */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
   }
 }
