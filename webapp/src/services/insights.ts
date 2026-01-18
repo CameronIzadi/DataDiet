@@ -121,19 +121,18 @@ function getEmptyInsights(): Insights {
  * Analyze blood work results
  */
 export function analyzeBloodWork(bloodWork: BloodWork): BloodWorkStatus {
+  const tc = bloodWork.totalCholesterol;
+  const ldl = bloodWork.ldl;
+  const hdl = bloodWork.hdl;
+  const trig = bloodWork.triglycerides;
+  const fg = bloodWork.fastingGlucose;
+
   return {
-    totalCholesterol: bloodWork.totalCholesterol < 200 ? 'normal' 
-      : bloodWork.totalCholesterol < 240 ? 'borderline' : 'high',
-    ldl: bloodWork.ldl < 100 ? 'optimal'
-      : bloodWork.ldl < 130 ? 'near_optimal'
-      : bloodWork.ldl < 160 ? 'borderline'
-      : bloodWork.ldl < 190 ? 'high' : 'very_high',
-    hdl: bloodWork.hdl < 40 ? 'low' : bloodWork.hdl > 60 ? 'high' : 'normal',
-    triglycerides: bloodWork.triglycerides < 150 ? 'normal'
-      : bloodWork.triglycerides < 200 ? 'borderline'
-      : bloodWork.triglycerides < 500 ? 'high' : 'very_high',
-    fastingGlucose: bloodWork.fastingGlucose < 100 ? 'normal'
-      : bloodWork.fastingGlucose < 126 ? 'borderline' : 'high',
+    totalCholesterol: tc == null ? 'normal' : tc < 200 ? 'normal' : tc < 240 ? 'borderline' : 'high',
+    ldl: ldl == null ? 'optimal' : ldl < 100 ? 'optimal' : ldl < 130 ? 'near_optimal' : ldl < 160 ? 'borderline' : ldl < 190 ? 'high' : 'very_high',
+    hdl: hdl == null ? 'normal' : hdl < 40 ? 'low' : hdl > 60 ? 'high' : 'normal',
+    triglycerides: trig == null ? 'normal' : trig < 150 ? 'normal' : trig < 200 ? 'borderline' : trig < 500 ? 'high' : 'very_high',
+    fastingGlucose: fg == null ? 'normal' : fg < 100 ? 'normal' : fg < 126 ? 'borderline' : 'high',
   };
 }
 
@@ -145,7 +144,7 @@ export function generateCorrelations(insights: Insights, bloodWork: BloodWork): 
   const status = analyzeBloodWork(bloodWork);
 
   // LDL correlations
-  if (status.ldl === 'high' || status.ldl === 'very_high' || status.ldl === 'borderline') {
+  if (bloodWork.ldl != null && (status.ldl === 'high' || status.ldl === 'very_high' || status.ldl === 'borderline')) {
     if (insights.processedMeat.concernLevel !== 'low') {
       correlations.push(
         `Elevated LDL (${bloodWork.ldl} mg/dL) may correlate with processed meat consumption (${insights.processedMeat.perWeek.toFixed(1)} servings/week)`
@@ -154,7 +153,7 @@ export function generateCorrelations(insights: Insights, bloodWork: BloodWork): 
   }
 
   // Triglyceride correlations
-  if (status.triglycerides === 'high' || status.triglycerides === 'borderline') {
+  if (bloodWork.triglycerides != null && (status.triglycerides === 'high' || status.triglycerides === 'borderline')) {
     if (insights.mealTiming.concernLevel !== 'low') {
       correlations.push(
         `Elevated triglycerides (${bloodWork.triglycerides} mg/dL) may be associated with late-night eating pattern (${insights.mealTiming.lateMealPercent}% of meals after 9pm)`
@@ -163,14 +162,14 @@ export function generateCorrelations(insights: Insights, bloodWork: BloodWork): 
   }
 
   // HDL correlations
-  if (status.hdl === 'low') {
+  if (bloodWork.hdl != null && status.hdl === 'low') {
     correlations.push(
       `Low HDL (${bloodWork.hdl} mg/dL) - consider dietary modifications to increase healthy fats`
     );
   }
 
   // Glucose correlations
-  if (status.fastingGlucose === 'borderline' || status.fastingGlucose === 'high') {
+  if (bloodWork.fastingGlucose != null && (status.fastingGlucose === 'borderline' || status.fastingGlucose === 'high')) {
     if (insights.mealTiming.lateMealPercent > 20) {
       correlations.push(
         `Borderline glucose (${bloodWork.fastingGlucose} mg/dL) may be influenced by meal timing patterns`

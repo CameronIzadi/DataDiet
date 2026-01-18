@@ -39,14 +39,30 @@ export interface Meal {
   nutrition?: Nutrition;
 }
 
+// Individual blood work metric with value and reference range
+export interface BloodWorkMetric {
+  value: number;
+  unit: string;
+  referenceRange?: string;
+  status?: 'low' | 'normal' | 'borderline' | 'high';
+}
+
 export interface BloodWork {
   id: string;
   testDate: Date;
-  totalCholesterol: number;
-  ldl: number;
-  hdl: number;
-  triglycerides: number;
-  fastingGlucose: number;
+  // Core lipid panel
+  totalCholesterol?: number;
+  ldl?: number;
+  hdl?: number;
+  triglycerides?: number;
+  // Glucose
+  fastingGlucose?: number;
+  hba1c?: number;
+  // Additional metrics extracted from report
+  metrics?: Record<string, BloodWorkMetric>;
+  // Source file (base64 or URL)
+  sourceFile?: string;
+  sourceFileName?: string;
 }
 
 export interface BloodWorkStatus {

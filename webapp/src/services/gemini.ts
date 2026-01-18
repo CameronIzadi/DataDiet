@@ -108,11 +108,11 @@ DIETARY FLAGS IDENTIFIED: ${flagData.slice(0, 6).map(f => `${f.name} (n=${f.valu
 FREQUENTLY CONSUMED ITEMS: ${frequentFoods.slice(0, 8).map(f => f.name).join(', ') || 'Insufficient data'}
 ${bloodWork ? `
 LABORATORY VALUES (Specimen Date: ${bloodWork.testDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}):
-• Total Cholesterol: ${bloodWork.totalCholesterol} mg/dL [Reference: <200 mg/dL] ${bloodWork.totalCholesterol >= 240 ? '— ELEVATED' : bloodWork.totalCholesterol >= 200 ? '— BORDERLINE HIGH' : '— WITHIN NORMAL LIMITS'}
-• LDL Cholesterol: ${bloodWork.ldl} mg/dL [Reference: <100 mg/dL optimal] ${bloodWork.ldl >= 160 ? '— ELEVATED' : bloodWork.ldl >= 130 ? '— BORDERLINE HIGH' : '— OPTIMAL'}
-• HDL Cholesterol: ${bloodWork.hdl} mg/dL [Reference: >40 mg/dL] ${bloodWork.hdl < 40 ? '— LOW' : bloodWork.hdl >= 60 ? '— OPTIMAL/PROTECTIVE' : '— WITHIN NORMAL LIMITS'}
-• Triglycerides: ${bloodWork.triglycerides} mg/dL [Reference: <150 mg/dL] ${bloodWork.triglycerides >= 200 ? '— ELEVATED' : bloodWork.triglycerides >= 150 ? '— BORDERLINE HIGH' : '— WITHIN NORMAL LIMITS'}
-• Fasting Glucose: ${bloodWork.fastingGlucose} mg/dL [Reference: <100 mg/dL] ${bloodWork.fastingGlucose >= 126 ? '— DIABETIC RANGE' : bloodWork.fastingGlucose >= 100 ? '— PREDIABETIC/IFG' : '— WITHIN NORMAL LIMITS'}` : ''}
+${bloodWork.totalCholesterol != null ? `• Total Cholesterol: ${bloodWork.totalCholesterol} mg/dL [Reference: <200 mg/dL] ${bloodWork.totalCholesterol >= 240 ? '— ELEVATED' : bloodWork.totalCholesterol >= 200 ? '— BORDERLINE HIGH' : '— WITHIN NORMAL LIMITS'}` : ''}
+${bloodWork.ldl != null ? `• LDL Cholesterol: ${bloodWork.ldl} mg/dL [Reference: <100 mg/dL optimal] ${bloodWork.ldl >= 160 ? '— ELEVATED' : bloodWork.ldl >= 130 ? '— BORDERLINE HIGH' : '— OPTIMAL'}` : ''}
+${bloodWork.hdl != null ? `• HDL Cholesterol: ${bloodWork.hdl} mg/dL [Reference: >40 mg/dL] ${bloodWork.hdl < 40 ? '— LOW' : bloodWork.hdl >= 60 ? '— OPTIMAL/PROTECTIVE' : '— WITHIN NORMAL LIMITS'}` : ''}
+${bloodWork.triglycerides != null ? `• Triglycerides: ${bloodWork.triglycerides} mg/dL [Reference: <150 mg/dL] ${bloodWork.triglycerides >= 200 ? '— ELEVATED' : bloodWork.triglycerides >= 150 ? '— BORDERLINE HIGH' : '— WITHIN NORMAL LIMITS'}` : ''}
+${bloodWork.fastingGlucose != null ? `• Fasting Glucose: ${bloodWork.fastingGlucose} mg/dL [Reference: <100 mg/dL] ${bloodWork.fastingGlucose >= 126 ? '— DIABETIC RANGE' : bloodWork.fastingGlucose >= 100 ? '— PREDIABETIC/IFG' : '— WITHIN NORMAL LIMITS'}` : ''}` : ''}
 
 ===== GENERATE REPORT WITH THIS EXACT STRUCTURE =====
 
@@ -188,11 +188,11 @@ ${bloodWork ? `
 
 | Biomarker | Result | Reference Range | Interpretation |
 |:----------|:-------|:----------------|:---------------|
-| Total Cholesterol | ${bloodWork.totalCholesterol} mg/dL | <200 mg/dL | ${bloodWork.totalCholesterol >= 240 ? 'Elevated' : bloodWork.totalCholesterol >= 200 ? 'Borderline High' : 'Desirable'} |
-| LDL Cholesterol | ${bloodWork.ldl} mg/dL | <100 mg/dL | ${bloodWork.ldl >= 160 ? 'High' : bloodWork.ldl >= 130 ? 'Borderline High' : 'Near Optimal'} |
-| HDL Cholesterol | ${bloodWork.hdl} mg/dL | >40 mg/dL | ${bloodWork.hdl < 40 ? 'Low (CVD Risk Factor)' : bloodWork.hdl >= 60 ? 'Optimal (Cardioprotective)' : 'Acceptable'} |
-| Triglycerides | ${bloodWork.triglycerides} mg/dL | <150 mg/dL | ${bloodWork.triglycerides >= 200 ? 'High' : bloodWork.triglycerides >= 150 ? 'Borderline High' : 'Normal'} |
-| Fasting Glucose | ${bloodWork.fastingGlucose} mg/dL | <100 mg/dL | ${bloodWork.fastingGlucose >= 126 ? 'Diabetic Range' : bloodWork.fastingGlucose >= 100 ? 'Impaired Fasting Glucose' : 'Normal'} |
+${bloodWork.totalCholesterol != null ? `| Total Cholesterol | ${bloodWork.totalCholesterol} mg/dL | <200 mg/dL | ${bloodWork.totalCholesterol >= 240 ? 'Elevated' : bloodWork.totalCholesterol >= 200 ? 'Borderline High' : 'Desirable'} |` : ''}
+${bloodWork.ldl != null ? `| LDL Cholesterol | ${bloodWork.ldl} mg/dL | <100 mg/dL | ${bloodWork.ldl >= 160 ? 'High' : bloodWork.ldl >= 130 ? 'Borderline High' : 'Near Optimal'} |` : ''}
+${bloodWork.hdl != null ? `| HDL Cholesterol | ${bloodWork.hdl} mg/dL | >40 mg/dL | ${bloodWork.hdl < 40 ? 'Low (CVD Risk Factor)' : bloodWork.hdl >= 60 ? 'Optimal (Cardioprotective)' : 'Acceptable'} |` : ''}
+${bloodWork.triglycerides != null ? `| Triglycerides | ${bloodWork.triglycerides} mg/dL | <150 mg/dL | ${bloodWork.triglycerides >= 200 ? 'High' : bloodWork.triglycerides >= 150 ? 'Borderline High' : 'Normal'} |` : ''}
+${bloodWork.fastingGlucose != null ? `| Fasting Glucose | ${bloodWork.fastingGlucose} mg/dL | <100 mg/dL | ${bloodWork.fastingGlucose >= 126 ? 'Diabetic Range' : bloodWork.fastingGlucose >= 100 ? 'Impaired Fasting Glucose' : 'Normal'} |` : ''}
 
 ### Diet-Biomarker Correlations
 
@@ -371,6 +371,171 @@ function getWeeklyPattern(meals: Meal[]): string {
 /**
  * Analyze text description of a meal (fallback if no image)
  */
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * Query food history with AI - conversational interface
+ */
+export async function queryFoodHistory(
+  query: string,
+  meals: Meal[],
+  insights: Insights,
+  bloodWork: BloodWork | null,
+  conversationHistory: ChatMessage[]
+): Promise<string> {
+  const mealsSummary = buildMealsSummary(meals);
+  const insightsSummary = buildInsightsSummary(insights);
+  const bloodWorkSummary = bloodWork ? buildBloodWorkSummary(bloodWork) : 'No blood work data available.';
+
+  // Keep last 10 messages for context
+  const recentHistory = conversationHistory.slice(-10);
+  const historyText = recentHistory.map(m =>
+    `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
+  ).join('\n\n');
+
+  const prompt = `You are a dietary assistant with access to the user's complete food history, health insights, and blood work lab results. Give brief, direct answers.
+
+IMPORTANT: Keep responses to 2-3 sentences max. No lengthy explanations. Just identify the likely cause and one key insight. Be direct.
+
+When the user asks about blood work, lab results, cholesterol, glucose, or health markers - reference their actual blood work data below if available.
+
+===== USER'S DIETARY DATA =====
+
+${mealsSummary}
+
+===== INSIGHTS SUMMARY =====
+
+${insightsSummary}
+
+===== BLOOD WORK =====
+
+${bloodWorkSummary}
+
+===== CONVERSATION HISTORY =====
+
+${historyText || 'No previous messages.'}
+
+===== CURRENT QUESTION =====
+
+User: ${query}
+
+Answer in 2-3 sentences. Reference specific foods/times from their data. No fluff.`;
+
+  try {
+    const result = await callGeminiAPI('queryFoodHistory', { prompt });
+    return result;
+  } catch (error) {
+    console.error('Food history query error:', error);
+    throw new Error('Failed to query food history');
+  }
+}
+
+/**
+ * Build a summary of meals grouped by date
+ */
+function buildMealsSummary(meals: Meal[]): string {
+  if (meals.length === 0) {
+    return 'No meals logged yet.';
+  }
+
+  // Group meals by date
+  const mealsByDate = new Map<string, Meal[]>();
+  meals.forEach(meal => {
+    const date = new Date(meal.loggedAt).toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+    if (!mealsByDate.has(date)) {
+      mealsByDate.set(date, []);
+    }
+    mealsByDate.get(date)!.push(meal);
+  });
+
+  // Sort by date (most recent first) and take last 14 days
+  const sortedDates = Array.from(mealsByDate.keys()).slice(0, 14);
+
+  let summary = `MEAL HISTORY (${meals.length} total meals):\n\n`;
+
+  sortedDates.forEach(date => {
+    const dateMeals = mealsByDate.get(date)!;
+    summary += `📅 ${date}:\n`;
+    dateMeals.forEach(meal => {
+      const time = new Date(meal.loggedAt).toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit'
+      });
+      const foods = meal.foods.map(f => f.name).join(', ');
+      const flags = meal.flags.length > 0 ? ` [${meal.flags.join(', ')}]` : '';
+      summary += `  • ${time}: ${foods}${flags}\n`;
+    });
+    summary += '\n';
+  });
+
+  return summary;
+}
+
+/**
+ * Build insights summary
+ */
+function buildInsightsSummary(insights: Insights): string {
+  return `Analysis Period: ${insights.dateRange}
+Total Meals: ${insights.totalMeals}
+
+Key Metrics:
+• Processed Meat: ${insights.processedMeat.count} servings (${insights.processedMeat.perWeek.toFixed(1)}/week) - ${insights.processedMeat.concernLevel}
+• Late-Night Eating: ${insights.mealTiming.lateMealPercent}% of meals after 9pm - ${insights.mealTiming.concernLevel}
+• Plastic Exposure: ${insights.plastic.count} instances (${insights.plastic.perDay.toFixed(2)}/day) - ${insights.plastic.concernLevel}
+• Average Dinner Time: ${insights.mealTiming.avgDinnerTime}
+• Pattern: ${insights.patterns.weekendVsWeekday}`;
+}
+
+/**
+ * Build blood work summary with clinical thresholds
+ */
+function buildBloodWorkSummary(bloodWork: BloodWork): string {
+  const testDate = new Date(bloodWork.testDate).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  const lines: string[] = [`BLOOD WORK RESULTS (Test Date: ${testDate})`, ''];
+
+  if (bloodWork.totalCholesterol != null) {
+    const status = bloodWork.totalCholesterol >= 240 ? 'HIGH' : bloodWork.totalCholesterol >= 200 ? 'BORDERLINE' : 'NORMAL';
+    lines.push(`• Total Cholesterol: ${bloodWork.totalCholesterol} mg/dL — ${status} (normal: <200)`);
+  }
+  if (bloodWork.ldl != null) {
+    const status = bloodWork.ldl >= 160 ? 'HIGH' : bloodWork.ldl >= 130 ? 'BORDERLINE' : 'OPTIMAL';
+    lines.push(`• LDL Cholesterol: ${bloodWork.ldl} mg/dL — ${status} (optimal: <100)`);
+  }
+  if (bloodWork.hdl != null) {
+    const status = bloodWork.hdl < 40 ? 'LOW (risk factor)' : bloodWork.hdl >= 60 ? 'OPTIMAL' : 'NORMAL';
+    lines.push(`• HDL Cholesterol: ${bloodWork.hdl} mg/dL — ${status} (good: >40, optimal: >60)`);
+  }
+  if (bloodWork.triglycerides != null) {
+    const status = bloodWork.triglycerides >= 200 ? 'HIGH' : bloodWork.triglycerides >= 150 ? 'BORDERLINE' : 'NORMAL';
+    lines.push(`• Triglycerides: ${bloodWork.triglycerides} mg/dL — ${status} (normal: <150)`);
+  }
+  if (bloodWork.fastingGlucose != null) {
+    const status = bloodWork.fastingGlucose >= 126 ? 'DIABETIC RANGE' : bloodWork.fastingGlucose >= 100 ? 'PREDIABETIC' : 'NORMAL';
+    lines.push(`• Fasting Glucose: ${bloodWork.fastingGlucose} mg/dL — ${status} (normal: <100)`);
+  }
+
+  // Add additional extracted metrics if available
+  if (bloodWork.metrics && Object.keys(bloodWork.metrics).length > 0) {
+    lines.push('', 'Additional Tests:');
+    for (const [name, metric] of Object.entries(bloodWork.metrics)) {
+      const statusStr = metric.status && metric.status !== 'normal' ? ` — ${metric.status.toUpperCase()}` : '';
+      const refStr = metric.referenceRange ? ` (ref: ${metric.referenceRange})` : '';
+      lines.push(`• ${name}: ${metric.value} ${metric.unit}${statusStr}${refStr}`);
+    }
+  }
+
+  lines.push('', 'Use these values when the user asks about their health markers, blood work, or how diet affects their labs.');
+
+  return lines.join('\n');
+}
+
 export async function analyzeFoodText(description: string): Promise<GeminiFoodAnalysis> {
   const prompt = `Analyze this meal description and return ONLY valid JSON:
 

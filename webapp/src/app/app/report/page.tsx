@@ -235,7 +235,7 @@ export default function ReportPage() {
               <div>
                 <h2 className="text-xl font-semibold text-warm-900 dark:text-neutral-100">Dietary Pattern Report</h2>
                 <p className="text-sm text-warm-500 dark:text-neutral-400">
-                  {viewingReport.generatedAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • {viewingReport.periodLabel} • {viewingReport.mealsAnalyzed} meals
+                  {viewingReport.generatedAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at {viewingReport.generatedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} • {viewingReport.periodLabel} • {viewingReport.mealsAnalyzed} meals
                 </p>
               </div>
             </div>
@@ -401,7 +401,7 @@ export default function ReportPage() {
                           {report.periodLabel} Report
                         </h3>
                         <p className="text-sm text-warm-500 dark:text-neutral-400">
-                          {report.generatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {report.mealsAnalyzed} meals analyzed
+                          {report.generatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {report.generatedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} • {report.mealsAnalyzed} meals analyzed
                         </p>
                       </div>
                     </div>
@@ -600,7 +600,7 @@ export default function ReportPage() {
                           {report.periodLabel}
                         </p>
                         <p className="text-xs text-warm-500 dark:text-neutral-400">
-                          {report.generatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {report.generatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {report.generatedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                         </p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-warm-400 dark:text-neutral-500" />
