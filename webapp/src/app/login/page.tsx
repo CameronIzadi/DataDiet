@@ -330,9 +330,11 @@ export default function LoginPage() {
             className="mb-10"
           >
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-neutral-900 to-neutral-700 rounded-2xl flex items-center justify-center shadow-lg shadow-black/10">
-                <span className="text-white font-bold text-xl">DB</span>
-              </div>
+              <img
+                src="/icon-192.png"
+                alt="DataDiet"
+                className="w-12 h-12 rounded-2xl shadow-lg shadow-black/10"
+              />
               <span className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">DataDiet</span>
             </div>
 

@@ -145,6 +145,7 @@ export default function ReportPage() {
           generatedAt={reportDate || new Date()}
           periodLabel={periodLabelOverride || getPeriodLabel(selectedPeriod)}
           mealsAnalyzed={mealsOverride || getFilteredMeals(selectedPeriod).length}
+          baseUrl={typeof window !== 'undefined' ? window.location.origin : ''}
         />
       );
 

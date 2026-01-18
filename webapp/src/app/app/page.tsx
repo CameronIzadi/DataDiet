@@ -105,6 +105,7 @@ export default function AppDashboard() {
   const { meals, insights, isLoading, loadDemoData, user } = useApp();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  const [showAllMeals, setShowAllMeals] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -274,28 +275,83 @@ export default function AppDashboard() {
             {/* Right Column - Recent Meals */}
             <div className="lg:col-span-2">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-warm-900 dark:text-white">Recent Meals</h2>
+                <h2 className="font-semibold text-warm-900 dark:text-white">
+                  {showAllMeals ? 'All Meals' : 'Recent Meals'}
+                </h2>
                 {meals.length > 6 && (
-                  <Link href="/app/insights" className="text-sm text-sage-600 dark:text-sage-400 hover:text-sage-700 font-medium">
-                    View all
-                  </Link>
+                  <button
+                    onClick={() => setShowAllMeals(!showAllMeals)}
+                    className="text-sm text-sage-600 dark:text-sage-400 hover:text-sage-700 font-medium"
+                  >
+                    {showAllMeals ? 'Show less' : 'View all'}
+                  </button>
                 )}
               </div>
 
-              <div className="space-y-3">
-                {meals.slice(0, 6).map((meal) => (
-                  <MealCard key={meal.id} meal={meal} onClick={() => setSelectedMeal(meal)} />
-                ))}
-              </div>
+              {!showAllMeals ? (
+                <>
+                  <div className="space-y-3">
+                    {meals.slice(0, 6).map((meal) => (
+                      <MealCard key={meal.id} meal={meal} onClick={() => setSelectedMeal(meal)} />
+                    ))}
+                  </div>
 
-              {meals.length > 6 && (
-                <Link
-                  href="/app/insights"
-                  className="flex items-center justify-center gap-2 mt-4 py-3 text-sm text-warm-500 dark:text-neutral-400 hover:text-sage-600 dark:hover:text-sage-400 transition-colors"
-                >
-                  + {meals.length - 6} more meals
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                  {meals.length > 6 && (
+                    <button
+                      onClick={() => setShowAllMeals(true)}
+                      className="flex items-center justify-center gap-2 mt-4 py-3 w-full text-sm text-warm-500 dark:text-neutral-400 hover:text-sage-600 dark:hover:text-sage-400 transition-colors"
+                    >
+                      + {meals.length - 6} more meals
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* All meals grouped by date */}
+                  {(() => {
+                    // Group meals by date
+                    const mealsByDate: Record<string, Meal[]> = {};
+                    meals.forEach(meal => {
+                      const dateKey = format(new Date(meal.loggedAt), 'yyyy-MM-dd');
+                      if (!mealsByDate[dateKey]) {
+                        mealsByDate[dateKey] = [];
+                      }
+                      mealsByDate[dateKey].push(meal);
+                    });
+
+                    // Sort dates in descending order
+                    const sortedDates = Object.keys(mealsByDate).sort((a, b) => b.localeCompare(a));
+
+                    return sortedDates.map(dateKey => {
+                      const dateMeals = mealsByDate[dateKey];
+                      const dateObj = new Date(dateKey);
+                      const isToday = format(new Date(), 'yyyy-MM-dd') === dateKey;
+                      const isYesterday = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd') === dateKey;
+                      const dateLabel = isToday
+                        ? 'Today'
+                        : isYesterday
+                        ? 'Yesterday'
+                        : format(dateObj, 'EEEE, MMMM d');
+
+                      return (
+                        <div key={dateKey} className="mb-6">
+                          <h3 className="text-sm font-medium text-warm-500 dark:text-neutral-400 mb-3">
+                            {dateLabel}
+                            <span className="ml-2 text-warm-400 dark:text-neutral-500">
+                              · {dateMeals.length} meal{dateMeals.length !== 1 ? 's' : ''}
+                            </span>
+                          </h3>
+                          <div className="space-y-3">
+                            {dateMeals.map((meal) => (
+                              <MealCard key={meal.id} meal={meal} onClick={() => setSelectedMeal(meal)} />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </>
               )}
             </div>
           </div>

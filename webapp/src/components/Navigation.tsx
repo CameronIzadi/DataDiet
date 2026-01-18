@@ -55,9 +55,11 @@ export function Navigation() {
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-6">
                 <Link href="/" className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-gradient-to-br from-sage-500 to-sage-700 rounded-xl flex items-center justify-center shadow-sm">
-                    <span className="text-white font-bold text-sm">DB</span>
-                  </div>
+                  <img
+                    src="/icon-192.png"
+                    alt="DataDiet"
+                    className="w-9 h-9 rounded-xl shadow-sm"
+                  />
                   <span className="font-semibold text-warm-900 dark:text-neutral-100">DataDiet</span>
                 </Link>
               </div>
